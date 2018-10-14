@@ -1,0 +1,21 @@
+<config>
+    <resolveTypedefs>true</resolveTypedefs>
+    <qtMode>true</qtMode>
+    <generator>smoke</generator>
+    <definesList>/usr/share/smokegen/qtdefines</definesList>
+    <includeDirs>
+        <dir>/usr/include/qt4</dir>
+        <dir>/usr/include/qt4/QtCore</dir>
+        <dir>/usr/include/qt4/QtGui</dir>
+        <dir>/usr/include/qt4/QtNetwork</dir>
+        <dir>/usr/include/qt4/QtDBus</dir>
+        <dir>/usr/include/qt4/QtSql</dir>
+        <dir>/usr/include/qt4/QtXml</dir>
+        <dir>/usr/include/qt4/QtOpenGL</dir>
+        <dir>/usr/include/qt4/QtSvg</dir>
+        <dir>/usr/include/qt4/QtScript</dir>
+        <dir>QT_QTUITOOLS_INCLUDE_DIR-NOTFOUND</dir>
+        <dir>QT_QTTEST_INCLUDE_DIR-NOTFOUND</dir>
+        <dir>QT_QTWEBKIT_INCLUDE_DIR-NOTFOUND</dir>
+    </includeDirs>
+</config>
