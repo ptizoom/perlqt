@@ -24,7 +24,6 @@ extern "C" {
 extern PerlQt4::Binding binding;
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 extern "C" void init_qtcore_Smoke();
-//PTZ181002 somewhere not ??? in util.cpp
 extern Q_DECL_EXPORT QHash<Smoke*, PerlQt4Module> perlqt_modules;
 extern SV* sv_qapp;
 Q_DECL_EXPORT QList<Smoke*> smokeList;

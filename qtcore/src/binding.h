@@ -2,7 +2,7 @@
 #define BINDING_H
 
 #include "smoke.h"
-//PTZ181001 #undef Q_DECL_EXPORT
+
 #ifndef Q_DECL_EXPORT
 #define Q_DECL_EXPORT
 #endif
