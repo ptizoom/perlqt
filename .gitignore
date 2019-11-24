@@ -12,6 +12,8 @@ CMakeCache.txt
 
 Makefile
 
+bld/
+build/
 
 blib/
 *_/
@@ -36,3 +38,7 @@ qtxml/src/QtXml4.c
 qwt/src/Qwt.c
 smokeqt/qwt/cygsmokeqwt-3.dll
 smokeqt/qwt/libsmokeqwt.dll.a
+
+config.xml
+qt-config.xml
+qtdefines*
