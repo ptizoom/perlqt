@@ -1,23 +1,23 @@
+Ui_*.pm
+*Resources.pm
+blib/
+build/
+bld/
+
+*~
+.*.swp
+
 CMakeFiles/
 *.cmake
 
 CMakeCache.txt
 
-
-
-*~
 *.\*grep\*
-
 *.log
 
 Makefile
 
-bld/
-build/
-
-blib/
 *_/
-
 
 Testing/
 install_manifest.txt
