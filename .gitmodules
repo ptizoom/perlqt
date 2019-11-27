@@ -1,0 +1,3 @@
+[submodule "smokeqt"]
+	path = smokeqt
+	url = git://anongit.kde.org/smokeqt.git
