@@ -1,3 +1,6 @@
 [submodule "smokeqt"]
 	path = smokeqt
 	url = git://anongit.kde.org/smokeqt.git
+[submodule "smokegen"]
+	path = smokegen
+	url = git://anongit.kde.org/smokegen.git
