@@ -19,7 +19,8 @@ add_library(perlqtsvg5 SHARED
 )
 
 target_link_libraries(perlqtsvg5
-    Qt5::Svg
+  #Qt5::Svg PTZ191124 not in debian
+  Qt5Svg
     ${PERL_LIBRARY}
     ${SMOKE_BASE_LIBRARY}
     ${SMOKE_QTSVG_LIBRARY}

@@ -19,7 +19,8 @@ add_library(perlqthelp5 SHARED
 )
 
 target_link_libraries(perlqthelp5
-    Qt5::Help
+  #Qt5::Help PTZ191124 not in debian
+  Qt5Help
     ${PERL_LIBRARY}
     ${SMOKE_QTHELP_LIBRARY}
     ${PERL_LIBS}

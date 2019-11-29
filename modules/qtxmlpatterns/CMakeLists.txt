@@ -21,7 +21,8 @@ add_library(perlqtxmlpatterns5 SHARED
 target_link_libraries(perlqtxmlpatterns5
     Qt5::Core
     Qt5::Gui
-    Qt5::XmlPatterns
+    #Qt5::XmlPatterns PTZ191124 not in debian
+    Qt5XmlPatterns
     ${PERL_LIBRARY}
     ${SMOKE_BASE_LIBRARY}
     ${SMOKE_QTCORE_LIBRARY}
