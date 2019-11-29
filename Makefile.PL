@@ -2,7 +2,8 @@
 
 use strict;
 use Config;
-
+use File::pushd;
+ 
 my ($prefix, $sitearch, $qmake) = ($Config{prefix}, $Config{sitearch});
 my @cmakeArgs;
 foreach my $arg (@ARGV) {
@@ -23,8 +24,11 @@ foreach my $arg (@ARGV) {
 }
 
 my @args;
-push @args, '.';
-push @args, '-DCMAKE_BUILD_TYPE=Release';
+#PTZ191124
+push @args, '..';
+push @args, '-DCMAKE_BUILD_TYPE=Debug';
+
+#push @args, '-DCMAKE_BUILD_TYPE=Release';
 
 my $pathsearch = ":";
 my $cmakesearch = "cmake";
@@ -51,7 +55,11 @@ foreach my $path ( split m/$pathsearch/, $ENV{PATH} ) {
     }
 }
 if ( !$cmake ) {
-    die 'You must have cmake installed to compile PerlQt4.';
+    die 'You must have cmake installed to compile PerlQt.';
 }
 
-exit system('cmake', @args);
+do {
+    (-d 'bld') || mkdir('bld');
+    my $_d = pushd( 'bld' );
+    exit system('cmake', @args);
+};
