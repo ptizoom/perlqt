@@ -44,7 +44,37 @@ find_package(Qt5
     Xml
     XmlPatterns
     QUIET
-)
+    )
+  
+#PTZ191127 could be smoke is here with a better version....
+#add_subdirectory(smokegen)
+#add_subdirectory(smokeqt)
+include(ExternalProject)
+set(_src_d ${PROJECT_SOURCE_DIR}/smokegen)
+ExternalProject_Add(ep_smokegenerator
+  PREFIX ${PROJECT_BINARY_DIR}
+  #GIT_REPOSITORY git://anongit.kde.org/smokegen.git
+  #GIT_BRANCH clang clang_PTZ191127
+  SOURCE_DIR ${_src_d}
+  BUILD_BYPRODUCTS smokegen smoke.h
+  )
+
+set(_src_d ${PROJECT_SOURCE_DIR}/smokeqt)
+ExternalProject_Add(ep_smokeqt
+  PREFIX ${PROJECT_BINARY_DIR}
+  #GIT_REPOSITORY git://anongit.kde.org/smokeqt.git
+  #GIT_BRANCH clang Qt5v2_PTZ191127
+  SOURCE_DIR ${_src_d}
+  BUILD_BYPRODUCTS smokeqt qtcore_smoke.h  qthelp_smoke.h               qtnetwork_smoke.h      qtprintsupport_smoke.h  qtquickwidgets_smoke.h  qttest_smoke.h        qtwebenginecore_smoke.h     qtxml_smoke.h qtdbus_smoke.h  qtmultimedia_smoke.h         qtopengl_smoke.h       qtqml_smoke.h           qtscript_smoke.h        qtuitools_smoke.h     qtwebenginewidgets_smoke.h qtgui_smoke.h   qtmultimediawidgets_smoke.h  qtpositioning_smoke.h  qtquick_smoke.h         qtsql_smoke.h           qtwebchannel_smoke.h  qtwidgets_smoke.h
+  DEPENDS           ep_smokegenerator
+  )
+#needs /usr/local/include/smoke
+ExternalProject_Get_property(ep_smokeqt INSTALL_DIR)
+message("build dir of ep_smokeqt = ${INSTALL_DIR}")
+#then include dir is temporaly...
+set(ep_smokeqt_INCLUDE_DIR  ${INSTALL_DIR}/include/smoke)
+list(PREPEND SMOKE_QTCORE_INCLUDE_DIR ${INSTALL_DIR}/include/smoke)
+list(APPEND SMOKE_QTCORE_INCLUDE_DIR /usr/include/smoke)
 
 find_package(Smoke REQUIRED COMPONENTS QtCore)
 find_package(Smoke
