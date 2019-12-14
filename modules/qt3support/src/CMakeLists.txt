@@ -40,8 +40,8 @@ target_link_libraries(perl_qt3support4
     ${SMOKE_QT3SUPPORT_LIBRARY}
     perlqtcore4
     #PTZ181001     ${QT_QTCORE_LIBRARY} ${SMOKE_QTCORE_LIBRARY}
-    #${CMAKE_BINARY_DIR}/blib/arch/auto/QtCore4/QtCore4.dll
-    #${CMAKE_BINARY_DIR}/blib/arch/auto/QtCore4/libQtCore4.dll.a
+    #${CMAKE_BINARY_DIR}/blib/arch/auto/QtCore/QtCore.dll
+    #${CMAKE_BINARY_DIR}/blib/arch/auto/QtCore/libQtCore.dll.a
     # could need a -mcmodel=large
     )
 

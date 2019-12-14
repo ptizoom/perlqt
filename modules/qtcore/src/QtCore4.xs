@@ -14,14 +14,14 @@ extern "C" {
 
 // Now my own headers
 #include "smoke.h"
-#include "QtCore4.h"
+#include "QtCore.h"
 #include "binding.h"
 #include "smokeperl.h"
 #include "marshall_types.h" // Method call classes
 #include "handlers.h" // for install_handlers function
 #include "listclass_macros.h"
 
-extern PerlQt4::Binding binding;
+extern PerlQt::Binding binding;
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 extern "C" void init_qtcore_Smoke();
 extern Q_DECL_EXPORT QHash<Smoke*, PerlQt4Module> perlqt_modules;
@@ -430,7 +430,7 @@ qApp()
     OUTPUT:
         RETVAL
 
-MODULE = QtCore4            PACKAGE = QtCore4
+MODULE = QtCore            PACKAGE = QtCore
 
 #// The build system with cmake and mingw relies on the visibility being set
 #// for a dll to export that symbol.  So we need to redefine XSPROTO so that we
@@ -439,7 +439,7 @@ MODULE = QtCore4            PACKAGE = QtCore4
 #ifdef WIN32
 #undef XSPROTO
 #define XSPROTO(name) void Q_DECL_EXPORT name(pTHX_ CV* cv)
-#define boot_QtCore4 boot_PerlQtCore4
+#define boot_QtCore boot_PerlQtCore
 #endif
 
 BOOT:
@@ -459,7 +459,7 @@ BOOT:
     smokeList << qtcore_Smoke;
 
     binding = PerlQt4::Binding(qtcore_Smoke);
-    PerlQt4Module module = { "PerlQtCore4", resolve_classname_qt, 0, &binding };
+    PerlQtModule module = { "PerlQtCore", resolve_classname_qt, 0, &binding };
     perlqt_modules[qtcore_Smoke] = module;
 
     install_handlers(Qt4_handlers);

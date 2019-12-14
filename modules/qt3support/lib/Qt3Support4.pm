@@ -19,7 +19,7 @@ package Qt3Support4::_internal;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 my %non3namedclasses;
@@ -57,7 +57,7 @@ package Qt3Support4;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use QtGui4;
 use QtNetwork4;
 use QtSql4;
@@ -66,7 +66,7 @@ require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore4::loadModule('Qt3Support4', $VERSION);
+QtCore::loadModule('Qt3Support4', $VERSION);
 
 Qt3Support4::_internal::init();
 

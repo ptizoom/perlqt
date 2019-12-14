@@ -4,10 +4,10 @@ package MyWidget;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use QtGui4;
-use QtCore4::isa qw( Qt::Widget );
-use QtCore4::signals
+use QtCore::isa qw( Qt::Widget );
+use QtCore::signals
     doCoolStuff => ['int'];
 
 sub NEW {
@@ -28,7 +28,7 @@ package main;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use QtGui4;
 use QtTest4;
 use MyWidget;

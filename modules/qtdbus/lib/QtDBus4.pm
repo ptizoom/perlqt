@@ -19,7 +19,7 @@ package QtDBus4::_internal;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 $Qt::_internal::customClasses{'Qt::DBusVariant'} = 'Qt::Variant';
@@ -43,7 +43,7 @@ package QtDBus4;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 require XSLoader;
 

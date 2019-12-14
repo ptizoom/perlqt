@@ -772,7 +772,7 @@ qWarning
 );
 
 unless(exists $::INC{'Qt/GlobalSpace.pm'}) {
-    $::INC{'Qt/GlobalSpace.pm'} = $::INC{'QtCore4.pm'};
+    $::INC{'Qt/GlobalSpace.pm'} = $::INC{'QtCore.pm'};
 }
 
 sub import {
@@ -1127,7 +1127,7 @@ sub getSmokeMethodId {
                 # else will be 2
                 my $stackDepth = ( $methodname eq $classname ) ? 4 : 2;
                 my @caller = caller($stackDepth);
-                while ( $caller[1] =~ m/QtCore4\.pm$/ || $caller[1] =~ m/QtCore4\/isa\.pm/ ) {
+                while ( $caller[1] =~ m/QtCore\.pm$/ || $caller[1] =~ m/QtCore\/isa\.pm/ ) {
                     ++$stackDepth;
                     @caller = caller($stackDepth);
                 }
@@ -1153,7 +1153,7 @@ sub getSmokeMethodId {
         if (!objmatch( $methodIds[0], \@_)) {
             my $stackDepth = ( $methodname eq $classname ) ? 4 : 2;
             my @caller = caller($stackDepth);
-            while ( $caller[1] =~ m/QtCore4\.pm$/ || $caller[1] =~ m/QtCore4\/isa\.pm/ ) {
+            while ( $caller[1] =~ m/QtCore\.pm$/ || $caller[1] =~ m/QtCore\/isa\.pm/ ) {
                 ++$stackDepth;
                 @caller = caller($stackDepth);
             }
@@ -1185,7 +1185,7 @@ sub getSmokeMethodId {
         }
         else {
             my $noMethodFound = reportNoMethodFound( $classname, $methodname, @_ );
-            $noMethodFound .= "'use QtCore4::debug qw(ambiguous)' for more information.\n";
+            $noMethodFound .= "'use QtCore::debug qw(ambiguous)' for more information.\n";
             die $noMethodFound;
         }
     }
@@ -1346,7 +1346,7 @@ sub reportAlternativeMethods {
     # @_ now equals the original argument array of the method call
     my $stackDepth = ( $methodname eq $classname ) ? 5 : 3;
     my @caller = caller($stackDepth);
-    while ( $caller[1] =~ m/QtCore4\.pm$/ || $caller[1] =~ m/QtCore4\/isa\.pm/ ) {
+    while ( $caller[1] =~ m/QtCore\.pm$/ || $caller[1] =~ m/QtCore\/isa\.pm/ ) {
         ++$stackDepth;
         @caller = caller($stackDepth);
     }
@@ -1370,9 +1370,9 @@ sub reportNoMethodFound {
     my $stackDepth = ( $methodname eq $classname ) ? 5 : 3;
 
     # Look up the stack to find who called us.  We don't care if it was
-    # called from QtCore4.pm or isa.pm
+    # called from QtCore.pm or isa.pm
     my @caller = caller($stackDepth);
-    while ( $caller[1] =~ m/QtCore4\.pm$/ || $caller[1] =~ m/QtCore4\/isa\.pm/ ) {
+    while ( $caller[1] =~ m/QtCore\.pm$/ || $caller[1] =~ m/QtCore\/isa\.pm/ ) {
         ++$stackDepth;
         @caller = caller($stackDepth);
     }
@@ -1599,7 +1599,7 @@ sub isa {
     return $class->isa( $baseClass );
 }
 
-package QtCore4;
+package QtCore;
 
 use 5.008006;
 use strict;
@@ -1612,7 +1612,7 @@ our $VERSION = '0.96';
 
 our @EXPORT = qw( SIGNAL SLOT emit CAST qApp );
 
-QtCore4::loadModule(__PACKAGE__, $VERSION);
+QtCore::loadModule(__PACKAGE__, $VERSION);
 
 Qt::_internal::init();
 
@@ -1920,11 +1920,11 @@ use overload
 
 =head1 NAME
 
-QtCore4 - Perl bindings for the QtCore version 4 library
+QtCore - Perl bindings for the QtCore version 4 library
 
 =head1 SYNOPSIS
 
-  use QtCore4;
+  use QtCore;
   use QtGui4;
   my $app = Qt::Application(\@ARGV);
   my $button = Qt::PushButton( 'Hello, World!', undef);
@@ -1989,7 +1989,7 @@ Qt::Application( \@ARGV );
 =head2 SUBCLASSING
 
 To create a subclass of a Qt class, declare a package, and then declare that
-package's base class by using QtCore4::isa and passing it an argument.
+package's base class by using QtCore::isa and passing it an argument.
 Multiple inheritance is not supported.  This package must implement a
 subroutine called NEW.  The NEW method is the constructor for that class.  The
 first argument to this method will be the name of the class being constructed,
@@ -2003,8 +2003,8 @@ explicitly 'use' it, even if the two packages are defined in the same file.
 
 This is a stub of a class called 'MyWidget', that subclasses Qt::Widget:
     package MyWidget;
-    use QtCore4;
-    use QtCore4::isa qw( Qt::Widget );
+    use QtCore;
+    use QtCore::isa qw( Qt::Widget );
 
     sub NEW {
         my ( $class, $parent ) = @_;
@@ -2012,7 +2012,7 @@ This is a stub of a class called 'MyWidget', that subclasses Qt::Widget:
     }
 
     package main;
-    use QtCore4;
+    use QtCore;
     use MyWidget;
 
     my $app = Qt::Application(\@ARGV);

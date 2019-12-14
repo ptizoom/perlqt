@@ -1,8 +1,8 @@
-package QtCore4::debug;
+package QtCore::debug;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 our $VERSION = 0.60;
 

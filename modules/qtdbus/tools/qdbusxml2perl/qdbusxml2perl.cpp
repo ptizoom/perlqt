@@ -588,9 +588,9 @@ static void writeProxy(const QString &filename, const QDBusIntrospection::Interf
         hs << "package " << className << ";" << endl;
         hs << "use strict;" << endl;
         hs << "use warnings;" << endl;
-        hs << "use QtCore4;" << endl;
+        hs << "use QtCore;" << endl;
         hs << "use QtDBus4;" << endl;
-        hs << "use QtCore4::isa qw( Qt::DBusAbstractInterface )" << ";" << endl << endl;
+        hs << "use QtCore::isa qw( Qt::DBusAbstractInterface )" << ";" << endl << endl;
 
         // the interface name
         cs << "sub staticInterfaceName" << endl
@@ -648,7 +648,7 @@ static void writeProxy(const QString &filename, const QDBusIntrospection::Interf
 
         // methods:
         if ( interface->methods.size() > 0 ) {
-            hs << "use QtCore4::slots # METHODS" << endl;
+            hs << "use QtCore::slots # METHODS" << endl;
             foreach (const QDBusIntrospection::Method &method, interface->methods) {
                 bool isDeprecated = method.annotations.value(QLatin1String("org.freedesktop.DBus.Deprecated")) == QLatin1String("true");
                 bool isNoReply =
@@ -751,7 +751,7 @@ static void writeProxy(const QString &filename, const QDBusIntrospection::Interf
         }
 
         if ( interface->signals_.size() > 0 ) {
-            hs << "use QtCore4::signals # SIGNALS" << endl;
+            hs << "use QtCore::signals # SIGNALS" << endl;
             foreach (const QDBusIntrospection::Signal &signal, interface->signals_) {
                 hs << "    ";
                 if (signal.annotations.value(QLatin1String("org.freedesktop.DBus.Deprecated")) ==
@@ -823,12 +823,12 @@ static void writeAdaptor(const QString &filename, const QDBusIntrospection::Inte
         hs << "package " << className << ";" << endl;
         hs << "use strict;" << endl;
         hs << "use warnings;" << endl;
-        hs << "use QtCore4;" << endl;
+        hs << "use QtCore;" << endl;
         hs << "use QtDBus4;" << endl;
-        hs << "use QtCore4::isa qw( Qt::DBusAbstractAdaptor )" << ";" << endl << endl;
+        hs << "use QtCore::isa qw( Qt::DBusAbstractAdaptor )" << ";" << endl << endl;
 
         // class header:
-        hs << "use QtCore4::classinfo" << endl
+        hs << "use QtCore::classinfo" << endl
            << "    'D-Bus Interface' => '" << interface->name << "'," << endl
            << "    'D-Bus Introspection' => '' ." << endl
            << stringify(interface->introspection)
@@ -899,7 +899,7 @@ static void writeAdaptor(const QString &filename, const QDBusIntrospection::Inte
         */
 
         if ( interface->methods.size() > 0 ) {
-            hs << "use QtCore4::slots # METHODS" << endl
+            hs << "use QtCore::slots # METHODS" << endl
                << "    public => 1," << endl;
             foreach (const QDBusIntrospection::Method &method, interface->methods) {
                 bool isNoReply =
@@ -1009,7 +1009,7 @@ static void writeAdaptor(const QString &filename, const QDBusIntrospection::Inte
         }
 
         if ( interface->signals_.size() > 0 ) {
-            hs << "use QtCore4::signals # SIGNALS" << endl
+            hs << "use QtCore::signals # SIGNALS" << endl
                << "    public => 1," << endl;
             foreach (const QDBusIntrospection::Signal &signal, interface->signals_) {
                 hs << "    '";

@@ -371,7 +371,7 @@ bool Uic::plwrite(DomUI *ui)
     	if (option().useKDE) {
 			out << "use KDE4;" << endl << endl;
 		} else {
-			out << "use QtCore4;" << endl << endl;
+			out << "use QtCore;" << endl << endl;
 		}
 	}
 

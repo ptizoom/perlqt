@@ -27,7 +27,7 @@ extern "C" {
 
 #include <smokeperl.h>
 #include <marshall_macros.h>
-#include <QtCore4.h>
+#include <QtCore.h>
 
 #if QT_VERSION >= 0x40200
 #include <QtDBus/qdbusreply.h>

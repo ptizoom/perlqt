@@ -3,9 +3,9 @@
 use strict;
 use warnings;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
-use QtCore4::debug qw(ambiguous);
+use QtCore::debug qw(ambiguous);
 
 use Test::More tests => 32;
 

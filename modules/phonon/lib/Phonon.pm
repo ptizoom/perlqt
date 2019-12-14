@@ -19,7 +19,7 @@ package Phonon::_internal;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 sub init {
@@ -41,13 +41,13 @@ package Phonon;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore4::loadModule('Phonon', $VERSION);
+QtCore::loadModule('Phonon', $VERSION);
 
 Phonon::_internal::init();
 

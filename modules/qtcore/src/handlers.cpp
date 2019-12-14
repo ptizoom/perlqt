@@ -67,7 +67,7 @@
 
 #include "handlers.h"
 #include "binding.h"
-#include "QtCore4.h"
+#include "QtCore.h"
 #include "marshall_basetypes.h"
 #include "marshall_macros.h"
 #include "smokeperl.h"

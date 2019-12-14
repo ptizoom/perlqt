@@ -2,14 +2,14 @@ package MyApp;
 
 use Test::More tests => 5;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
-use QtCore4::isa qw(Qt::Application);
-use QtCore4::slots
+use QtCore::isa qw(Qt::Application);
+use QtCore::slots
         foo => [],
         slotToSignal => ['int','int'],
         slot => ['int','int'];
-use QtCore4::signals
+use QtCore::signals
         signal => ['int','int'],
         signalFromSlot => ['int','int'],
         signalWithBadArg => ['int'];
@@ -53,7 +53,7 @@ sub slot {
 
 package main;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
 use MyApp;
 

@@ -10,7 +10,7 @@
 #include "smokeperl.h" // for smokeperl_object
 #include "smokehelp.h" // for SmokeType and SmokeClass
 #include "handlers.h" // for getMarshallType
-#include "QtCore4.h" // for extern sv_this
+#include "QtCore.h" // for extern sv_this
 #include "util.h" // for caller()
 
 extern Smoke* qtcore_Smoke;

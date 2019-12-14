@@ -19,7 +19,7 @@ package QtSql4::_internal;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 sub init {
@@ -41,13 +41,13 @@ package QtSql4;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore4::loadModule('QtSql4', $VERSION);
+QtCore::loadModule('QtSql4', $VERSION);
 
 QtSql4::_internal::init();
 

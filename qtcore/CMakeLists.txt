@@ -1,6 +1,6 @@
 include (FindPerlMore)
 
 add_subdirectory(lib)
-add_subdirectory(src)
+#PTZ191211 add_subdirectory(src)
 add_subdirectory(tools)
 add_subdirectory(t)

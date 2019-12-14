@@ -5,9 +5,9 @@ package TestModel;
 use strict;
 use warnings;
 use blib;
-use QtCore4;
+use QtCore;
 use QtGui4;
-use QtCore4::isa qw( Qt::StringListModel );
+use QtCore::isa qw( Qt::StringListModel );
 
 sub NEW {
     my ($class, $parent) = @_;
@@ -38,7 +38,7 @@ use strict;
 use warnings;
 no warnings 'once';
 use blib;
-use QtCore4;
+use QtCore;
 use TestModel;
 use Test::More tests=>4;
 

@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use QtGui4;
 use QtTest4;
 

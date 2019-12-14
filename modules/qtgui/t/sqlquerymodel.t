@@ -5,12 +5,12 @@ package SqlQueryModelHelp;
 use strict;
 use warnings;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
 use QtTest4 qw( QVERIFY );
 use EditableSqlModel;
-use QtCore4::isa qw(Qt::Object);
-use QtCore4::slots
+use QtCore::isa qw(Qt::Object);
+use QtCore::slots
     private => 1,
     testEditability => [],
     initTestCase => [];
@@ -86,7 +86,7 @@ package main;
 use strict;
 use warnings;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
 use QtTest4 qw(QTEST_MAIN);
 use Test::More tests => 5;

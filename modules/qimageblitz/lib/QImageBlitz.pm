@@ -19,7 +19,7 @@ package QImageBlitz::_internal;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 sub init {
@@ -41,13 +41,13 @@ package QImageBlitz;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore4::loadModule('QImageBlitz', $VERSION);
+QtCore::loadModule('QImageBlitz', $VERSION);
 
 QImageBlitz::_internal::init();
 

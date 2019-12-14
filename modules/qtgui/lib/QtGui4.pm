@@ -20,7 +20,7 @@ package QtGui4::_internal;
 use strict;
 use warnings;
 
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 #PTZ181013 https://rt.cpan.org/Public/Bug/Display.html?id=121203
@@ -42,13 +42,13 @@ package QtGui4;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore4::loadModule('QtGui4', $VERSION);
+QtCore::loadModule('QtGui4', $VERSION);
 
 QtGui4::_internal::init();
 

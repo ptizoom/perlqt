@@ -31,7 +31,7 @@ extern "C" {
 
 // Now my own headers
 #include "smoke.h"
-#include "QtCore4.h"
+#include "QtCore.h"
 #include "binding.h"
 #include "smokeperl.h"
 #include "util.h"

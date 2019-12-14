@@ -3,7 +3,7 @@ use Test::More tests => 34;
 use strict;
 use warnings;
 use Devel::Peek;
-use QtCore4;
+use QtCore;
 use QtGui4;
 use QtNetwork4;
 

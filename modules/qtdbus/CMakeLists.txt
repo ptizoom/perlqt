@@ -44,3 +44,8 @@ add_custom_target(
 install(FILES QtDBus.pm DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/PerlQt5)
 
 add_subdirectory(tests)
+
+#PTZ191212 add_subdirectory( src )
+add_subdirectory( lib )
+add_subdirectory( tools )
+add_subdirectory( t )

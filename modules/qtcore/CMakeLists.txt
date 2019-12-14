@@ -53,3 +53,11 @@ add_custom_target(
 install(FILES QtCore.pm DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/PerlQt5)
 
 add_subdirectory(tests)
+
+#from QtCore4
+include (FindPerlMore)
+
+add_subdirectory(lib)
+#PTZ191211 add_subdirectory(src)
+add_subdirectory(tools)
+add_subdirectory(t)

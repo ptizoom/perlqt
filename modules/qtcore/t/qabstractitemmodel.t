@@ -5,8 +5,8 @@ package TestModel;
 use strict;
 use warnings;
 use blib;
-use QtCore4;
-use QtCore4::isa qw( Qt::AbstractItemModel );
+use QtCore;
+use QtCore::isa qw( Qt::AbstractItemModel );
 
 sub NEW {
     my ($class, $parent) = @_;
@@ -30,7 +30,7 @@ use strict;
 use warnings;
 no warnings 'once';
 use blib;
-use QtCore4;
+use QtCore;
 use TestModel;
 use Test::More tests=>15;
 

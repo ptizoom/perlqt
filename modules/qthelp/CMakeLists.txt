@@ -46,3 +46,7 @@ add_custom_target(
 install(FILES QtHelp.pm DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/PerlQt5)
 
 add_subdirectory(tests)
+
+#PTZ191212 add_subdirectory( src )
+add_subdirectory( lib )
+add_subdirectory( t )

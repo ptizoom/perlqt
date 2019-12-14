@@ -2,13 +2,13 @@ package MyApp;
 
 use Test::More;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
-use QtCore4::isa('Qt::Application');
-use QtCore4::slots
+use QtCore::isa('Qt::Application');
+use QtCore::slots
         foo => ['int'],
         baz => [];
-use QtCore4::signals
+use QtCore::signals
         bar => ['int'];
 
 sub NEW {
@@ -37,9 +37,9 @@ package MySubApp;
 
 use Test::More;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
-use QtCore4::isa('MyApp');
+use QtCore::isa('MyApp');
 
 sub NEW 
 {
@@ -65,7 +65,7 @@ package main;
 
 use Test::More tests => 7;
 
-use QtCore4;
+use QtCore;
 use QtGui4;
 use MySubApp;
 

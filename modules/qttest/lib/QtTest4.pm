@@ -19,7 +19,7 @@ package QtTest4::_internal;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 sub init {
@@ -36,13 +36,13 @@ package QtTest4;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore4::loadModule('QtTest4', $VERSION);
+QtCore::loadModule('QtTest4', $VERSION);
 
 QtTest4::_internal::init();
 

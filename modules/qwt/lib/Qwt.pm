@@ -19,7 +19,7 @@ package Qwt::_internal;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 use base qw(Qt::_internal);
 
 sub init {
@@ -41,13 +41,13 @@ package Qwt;
 
 use strict;
 use warnings;
-use QtCore4;
+use QtCore;
 
 require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore4::loadModule('Qwt', $VERSION);
+QtCore::loadModule('Qwt', $VERSION);
 
 Qwt::_internal::init();
 
