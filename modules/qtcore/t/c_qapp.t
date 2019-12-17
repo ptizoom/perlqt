@@ -1,7 +1,7 @@
 use Test::More tests => 3;
 
 use QtCore;
-use QtGui4;
+use QtGui;
 
 $a=0;
 

@@ -45,6 +45,12 @@ install(FILES QtDBus.pm DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/PerlQt5)
 
 add_subdirectory(tests)
 
+include_directories( ${Qt5DBus_INCLUDE_DIRS} )
+list(APPEND QT_QTXML_LIBRARY Qt5::Xml)
+list(APPEND QT_QTCORE_LIBRARY ${Qt5Core_LIBRARIES})
+list(APPEND QT_QTDBUS_LIBRARY Qt5::DBus)
+
+
 #PTZ191212 add_subdirectory( src )
 add_subdirectory( lib )
 add_subdirectory( tools )
