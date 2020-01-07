@@ -11,7 +11,7 @@
 #include "smokehelp.h" // for SmokeType and SmokeClass
 #include "handlers.h" // for getMarshallType
 #include "QtCore.h" // for extern sv_this
-#include "util.h" // for caller()
+#include "perlqtcore_util.h" // for caller()
 
 extern Smoke* qtcore_Smoke;
 

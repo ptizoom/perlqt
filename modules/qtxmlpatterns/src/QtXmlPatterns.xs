@@ -35,7 +35,7 @@ extern "C" {
 
 #include <smokeperl.h>
 #include <handlers.h>
-#include "util.h"
+#include "perlqtcore_util.h"
 
 extern QList<Smoke*> smokeList;
 

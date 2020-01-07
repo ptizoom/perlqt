@@ -6,15 +6,7 @@
 #include <QLinkedList>
 #include <QProcess>
 
-// Perl headers
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
-
-#include "util.h"
+#include "perlqtcore_util.h"
 
 //#include "marshall_basetypes.h"
 //TODO:PTZ181004 needs be inside a .cpp file as redefined many times!

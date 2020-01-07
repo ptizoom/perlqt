@@ -1,24 +1,27 @@
-//util.h brings in all the required Qt4 headers.  This has to happen before the
-//perl stuff below
-#include "util.h"
 
 #include <QXmlStreamAttributes>
 
-// Perl headers
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
+//util.h brings in all the required Qt4 headers.  This has to happen before the
+//perl stuff below
+#include "perlqtcore_util.h"
+
+//TODO:PTZ20200107  mostly, this shity header is called util.h which could be confused by /usr/lib/x86_64-linux-gnu/perl/5.30/CORE/util.h...
+
+/* // Perl headers */
+/* extern "C" { */
+/* #include "EXTERN.h" */
+/* #include "perl.h" */
+/* #include "XSUB.h" */
+/* #include "ppport.h" */
+/* } */
 
 // Now my own headers
-#include "smoke.h"
-#include "QtCore.h"
-#include "binding.h"
-#include "smokeperl.h"
-#include "marshall_types.h" // Method call classes
-#include "handlers.h" // for install_handlers function
+//#include "smoke.h"
+//#include "QtCore.h"
+//#include "binding.h"
+//#include "smokeperl.h"
+//#include "marshall_types.h" // Method call classes
+//#include "handlers.h" // for install_handlers function
 #include "listclass_macros.h"
 
 extern PerlQt::Binding binding;

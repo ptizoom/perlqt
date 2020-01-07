@@ -32,7 +32,7 @@ src/ppport.h
 src/smokehelp.h
 src/smokeperl.h
 src/util.cpp
-src/util.h
+src/perlqtcore_util.h
 t/CMakeLists.txt
 t/a_loading.t
 t/c_qapp.t

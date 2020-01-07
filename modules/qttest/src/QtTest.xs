@@ -28,19 +28,10 @@
 
 #include <iostream>
 
-// Perl headers
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
+#include <perlqtcore_util.h>
 
 #include <qttest_smoke.h>
 
-#include <smokeperl.h>
-#include <handlers.h>
-#include <util.h>
 #include <listclass_macros.h>
 #include <qtesteventlist_macros.h>
 

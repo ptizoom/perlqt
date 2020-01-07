@@ -64,15 +64,15 @@
 #endif
 
 //==============================================================================
+#include "perlqtcore_util.h"
 
 #include "handlers.h"
-#include "binding.h"
-#include "QtCore.h"
+//#include "binding.h"
+//#include "QtCore.h"
 #include "marshall_basetypes.h"
 #include "marshall_macros.h"
-#include "smokeperl.h"
+//#include "smokeperl.h"
 #include "smokehelp.h"
-#include "util.h"
 
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 

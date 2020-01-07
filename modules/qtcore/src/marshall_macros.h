@@ -25,7 +25,7 @@
 
 #include "binding.h"
 #include "marshall.h"
-#include "util.h"
+#include "perlqtcore_util.h"
 
 #define DEF_HASH_MARSHALLER(HashIdent,Item) namespace { char HashIdent##STR[] = #Item; }  \
         Marshall::HandlerFn marshall_##HashIdent = marshall_Hash<Item,HashIdent##STR>;
