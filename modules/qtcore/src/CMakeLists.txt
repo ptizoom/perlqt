@@ -1,3 +1,5 @@
+
+
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PERL_INCLUDE_PATH}
@@ -5,11 +7,14 @@ include_directories(
     ${QT_INCLUDES} )
 
 # Run doxsubpp.pl to run xsubpp on QtCore.xs
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/QtCore.c
-                   COMMAND ${PERL_EXECUTABLE} ARGS ${CMAKE_CURRENT_SOURCE_DIR}/doxsubpp.pl ${PERL_EXECUTABLE} QtCore.xs ${CMAKE_CURRENT_BINARY_DIR}/QtCore.c
-                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/QtCore.xs
-                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
+# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/QtCore.c
+#   COMMAND ${PERL_EXECUTABLE}
+#   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/doxsubpp.pl ${PERL_EXECUTABLE} QtCore.xs ${CMAKE_CURRENT_BINARY_DIR}/QtCore.c
+#   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/QtCore.xs
+#   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+# )
+#PTZ200104
+xsubpp(QtCore.xs ${CMAKE_CURRENT_BINARY_DIR}/QtCore.c)
 
 # I thought it'd be cool to be able to build the bindings without any runtime
 # debugging compiled in.  But that turned out to not really be a good idea, as
