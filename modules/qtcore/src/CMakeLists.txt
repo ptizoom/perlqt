@@ -45,12 +45,12 @@ endif(WIN32)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/blib/arch/auto/${libraryName})
 
 #PTZ181003
-add_library(perlqtcore4 SHARED ${perlqtcore_LIBRARY_SRCS})
+add_library(qtcore SHARED ${perlqtcore_LIBRARY_SRCS})
 #but then DynaLoader::dl_find does not work with QtCore4.a
 #add_library(perlqtcore4 ${perlqtcore_LIBRARY_SRCS})
 #add_library(perlqtcore4  OBJECT ${perlqtcore_LIBRARY_SRCS})
 
-target_link_libraries(perlqtcore4
+target_link_libraries(qtcore
     ${QT_QTCORE_LIBRARY}
     ${QT_QTGUI_LIBRARY}
     ${QT_QTNETWORK_LIBRARY}
@@ -61,15 +61,15 @@ target_link_libraries(perlqtcore4
     ${SMOKE_QTNETWORK_LIBRARY}
     ${PERL_LIBS})
 
-set_target_properties(perlqtcore4 PROPERTIES
+set_target_properties(qtcore PROPERTIES
     OUTPUT_NAME ${libraryName}
     PREFIX ""
     INSTALL_NAME_DIR ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/${libraryName}/
 )
 
-install(TARGETS perlqtcore4 EXPORT PerlQtExport DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/${libraryName}/)
+install(TARGETS qtcore EXPORT PerlQtExport DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/${libraryName}/)
 install(FILES binding.h handlers.h listclass_macros.h marshall_basetypes.h marshall_complex.h
               marshall.h marshall_macros.h marshall_primitives.h marshall_types.h perlqt.h ppport.h
               QtCore.h smokehelp.h smokeperl.h util.h
-        DESTINATION include/perlqt )
-install(FILES doxsubpp.pl DESTINATION share/perlqt )
+        DESTINATION include/perlqt5 )
+install(FILES doxsubpp.pl DESTINATION share/perlqt5 )
