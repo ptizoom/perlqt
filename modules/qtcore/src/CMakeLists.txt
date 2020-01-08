@@ -1,6 +1,7 @@
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PERL_INCLUDE_PATH}
+    ${Qt5Core_PRIVATE_INCLUDE_DIRS}
     ${QT_INCLUDES} )
 
 # Run doxsubpp.pl to run xsubpp on QtCore.xs

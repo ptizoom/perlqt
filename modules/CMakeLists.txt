@@ -5,7 +5,15 @@ function(addTestsFromTFiles)
         get_filename_component(testName "${testFile}" NAME_WE)
         macro_prove(${testName} ${testFile})
     endforeach()
-endfunction()
+  endfunction()
+  
+#PTZ200104 something wrong and points to  /usr/include/x86_64-linux-gnu/qt5/QtCore/5.12.5 instead
+LIST(APPEND QT_INCLUDES
+  /usr/include/x86_64-linux-gnu/qt5
+  /usr/include/x86_64-linux-gnu/qt5/QtCore
+  /usr/include/x86_64-linux-gnu/qt5/QtGui
+  /usr/include/x86_64-linux-gnu/qt5/QtNetwork
+)
 
 add_subdirectory(smokeperl)
 add_subdirectory(perlqt5)
