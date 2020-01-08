@@ -2319,7 +2319,11 @@ XS(XS_qt_metacall){
         if (method.methodType() == QMetaMethod::Signal) {
 #ifdef PERLQTDEBUG
             if(do_debug && (do_debug & qtdb_signals))
-                fprintf( stderr, "In signal for %s::%s\n", metaobject->className(), method.signature() );
+                fprintf( stderr, "In signal for %s::%s\n", metaobject->className()
+			 //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.
+			 //, method.signature()
+			 , method.methodSignature()
+			 );
 #endif
             metaobject->activate(sv_this_ptr, metaobject, 0, _a);
             // +1.  Id is 0 based, count is 1 based
@@ -2332,7 +2336,8 @@ XS(XS_qt_metacall){
             QList<MocArgument*> mocArgs = getMocArguments(o->smoke, method.typeName(), method.parameterTypes());
 
             // Find the name of the method being called
-            QString name(method.signature());
+	    //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.	    
+            QString name(method.methodSignature());
             static QRegExp* rx = 0;
             if (rx == 0) {
                 rx = new QRegExp("\\(.*");
@@ -2384,7 +2389,8 @@ XS(XS_signal){
     bool methodFound = false;
     for (index = metaobject->methodCount() - 1; index > -1; --index) {
 		if (metaobject->method(index).methodType() == QMetaMethod::Signal) {
-			QString name(metaobject->method(index).signature());
+	    //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.	    		  
+			QString name(metaobject->method(index).methodSignature());
             static QRegExp * rx = 0;
 			if (rx == 0) {
 				rx = new QRegExp("\\(.*");
@@ -2416,7 +2422,7 @@ XS(XS_signal){
             GvNAME(gv),
             GvNAME(gv),
             SvPV_nolen(sv_2mortal(catArguments(SP - items + 1, items ))),
-            method.signature(),
+            method.methodSignature(), //PTZ200107 qmetaobject.h 183:signature() has been renamed to methodSignature() in Qt 5.
             GvNAME(CopFILEGV(callercop))+2,
             CopLINE(callercop));
     }
