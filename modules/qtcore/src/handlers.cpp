@@ -18,11 +18,12 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qtextcodec.h>
 #include <QtCore/qurl.h>
+#if QT_VERSION <= 0x050000
+//PTZ200104  in /qt5/QtWidgets/
 #include <QtGui/qabstractbutton.h>
 #include <QtGui/qaction.h>
 #include <QtGui/qapplication.h>
 #include <QtGui/qdockwidget.h>
-#include <QtGui/qevent.h>
 #include <QtGui/qlayout.h>
 #include <QtGui/qlistwidget.h>
 #include <QtGui/qpainter.h>
@@ -37,29 +38,48 @@
 #include <QtGui/qtoolbar.h>
 #include <QtGui/qtreewidget.h>
 #include <QtGui/qwidget.h>
-#include <QtNetwork/qhostaddress.h>
-#include <QtNetwork/qnetworkinterface.h>
-#include <QtNetwork/qurlinfo.h>
-
-
 #if QT_VERSION >= 0x40200
 #include <QtGui/qgraphicsitem.h>
 #include <QtGui/qgraphicsscene.h>
-#include <QtGui/qstandarditemmodel.h>
 #include <QtGui/qundostack.h>
+#endif
+#if QT_VERSION >= 0x40300
+#include <QtGui/qmdisubwindow.h>
+#endif
+#endif
+
+#include <QtGui/qevent.h>
+
+#include <QtNetwork/qhostaddress.h>
+#include <QtNetwork/qnetworkinterface.h>
+
+#if QT_VERSION <= 0x050C00
+//PTZ200104  in /qt5/ qurlinfo_p.h
+#include <QtNetwork/qurlinfo.h>
+#endif
+
+#if QT_VERSION >= 0x40200
+#include <QtGui/qstandarditemmodel.h>
 #endif
 
 #if QT_VERSION >= 0x40300
-#include <QtGui/qmdisubwindow.h>
 #include <QtNetwork/qsslcertificate.h>
 #include <QtNetwork/qsslcipher.h>
 #include <QtNetwork/qsslerror.h>
+#if QT_VERSION > 0x050C00
+#include <QtCore/qxmlstream.h>
+#else
 #include <QtXml/qxmlstream.h>
+#endif
 #include <QMultiMap>
 #endif
 
 #if QT_VERSION >= 0x040400
+#if QT_VERSION < 0x050C00
 #include <QtGui/qprinterinfo.h>
+#else
+#include <QtPrintSupport/qprinterinfo.h>
+#endif
 #include <QtNetwork/qnetworkcookie.h>
 #endif
 
@@ -2212,12 +2232,10 @@ void marshall_QMultiMapQStringQString(Marshall *m) {
     }
 }
 #endif
-
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/
 DEF_LIST_MARSHALLER( QAbstractButtonList, QList<QAbstractButton*>, QAbstractButton )
 DEF_LIST_MARSHALLER( QActionGroupList, QList<QActionGroup*>, QActionGroup )
-DEF_LIST_MARSHALLER( QActionList, QList<QAction*>, QAction )
 DEF_LIST_MARSHALLER( QListWidgetItemList, QList<QListWidgetItem*>, QListWidgetItem )
-DEF_LIST_MARSHALLER( QObjectList, QList<QObject*>, QObject )
 DEF_LIST_MARSHALLER( QTableWidgetList, QList<QTableWidget*>, QTableWidget ) // !! not in Qt4_handlers
 DEF_LIST_MARSHALLER( QTableWidgetItemList, QList<QTableWidgetItem*>, QTableWidgetItem )
 DEF_LIST_MARSHALLER( QTextFrameList, QList<QTextFrame*>, QTextFrame )
@@ -2225,21 +2243,32 @@ DEF_LIST_MARSHALLER( QTreeWidgetItemList, QList<QTreeWidgetItem*>, QTreeWidgetIt
 DEF_LIST_MARSHALLER( QTreeWidgetList, QList<QTreeWidget*>, QTreeWidget ) // !! not in Qt4_handlers
 DEF_LIST_MARSHALLER( QWidgetList, QList<QWidget*>, QWidget )
 DEF_LIST_MARSHALLER( QWidgetPtrList, QList<QWidget*>, QWidget )
-
 #if QT_VERSION >= 0x40200
 DEF_LIST_MARSHALLER( QGraphicsItemList, QList<QGraphicsItem*>, QGraphicsItem )
-DEF_LIST_MARSHALLER( QStandardItemList, QList<QStandardItem*>, QStandardItem )
 DEF_LIST_MARSHALLER( QUndoStackList, QList<QUndoStack*>, QUndoStack )
 #endif
-
 #if QT_VERSION >= 0x40300
 DEF_LIST_MARSHALLER( QMdiSubWindowList, QList<QMdiSubWindow*>, QMdiSubWindow )
 #endif
 
+
+#endif
+
+DEF_LIST_MARSHALLER( QActionList, QList<QAction*>, QAction )
+
+DEF_LIST_MARSHALLER( QObjectList, QList<QObject*>, QObject )
+
+#if QT_VERSION >= 0x40200
+DEF_LIST_MARSHALLER( QStandardItemList, QList<QStandardItem*>, QStandardItem )
+#endif
+
+
 DEF_VALUELIST_MARSHALLER( QColorVector, QVector<QColor>, QColor )
 DEF_VALUELIST_MARSHALLER( QFileInfoList, QFileInfoList, QFileInfo )
 DEF_VALUELIST_MARSHALLER( QHostAddressList, QList<QHostAddress>, QHostAddress )
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/
 DEF_VALUELIST_MARSHALLER( QImageTextKeyLangList, QList<QImageTextKeyLang>, QImageTextKeyLang )
+#endif
 DEF_VALUELIST_MARSHALLER( QKeySequenceList, QList<QKeySequence>, QKeySequence )
 DEF_VALUELIST_MARSHALLER( QLineFVector, QVector<QLineF>, QLineF )
 DEF_VALUELIST_MARSHALLER( QLineVector, QVector<QLine>, QLine )
@@ -2254,11 +2283,17 @@ DEF_VALUELIST_MARSHALLER( QRectFList, QList<QRectF>, QRectF )
 DEF_VALUELIST_MARSHALLER( QRectFVector, QVector<QRectF>, QRectF )
 DEF_VALUELIST_MARSHALLER( QRectVector, QVector<QRect>, QRect )
 DEF_VALUELIST_MARSHALLER( QRgbVector, QVector<QRgb>, QRgb )
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/
 DEF_VALUELIST_MARSHALLER( QTableWidgetSelectionRangeList, QList<QTableWidgetSelectionRange>, QTableWidgetSelectionRange )
 DEF_VALUELIST_MARSHALLER( QTextBlockList, QList<QTextBlock>, QTextBlock )
 DEF_VALUELIST_MARSHALLER( QTextEditExtraSelectionsList, QList<QTextEdit::ExtraSelection>, QTextEdit::ExtraSelection )
-DEF_VALUELIST_MARSHALLER( QTextFormatVector, QVector<QTextFormat>, QTextFormat )
 DEF_VALUELIST_MARSHALLER( QTextLayoutFormatRangeList, QList<QTextLayout::FormatRange>, QTextLayout::FormatRange)
+
+#endif
+
+
+DEF_VALUELIST_MARSHALLER( QTextFormatVector, QVector<QTextFormat>, QTextFormat )
+
 DEF_VALUELIST_MARSHALLER( QTextLengthVector, QVector<QTextLength>, QTextLength )
 DEF_VALUELIST_MARSHALLER( QUrlList, QList<QUrl>, QUrl )
 DEF_VALUELIST_MARSHALLER( QVariantList, QList<QVariant>, QVariant )
@@ -2278,7 +2313,7 @@ DEF_VALUELIST_MARSHALLER( QNetworkCookieList, QList<QNetworkCookie>, QNetworkCoo
 DEF_VALUELIST_MARSHALLER( QPrinterInfoList, QList<QPrinterInfo>, QPrinterInfo )
 #endif
 
-Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
+Q_DECL_EXPORT TypeHandler Qt_handlers[] = {
     { "bool*", marshall_it<bool *> },
     { "bool&", marshall_it<bool *> },
     { "char**", marshall_charP_array },
@@ -2317,8 +2352,12 @@ Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
     { "QList<int>&", marshall_QListInt },
     { "QList<uint>", marshall_QListUInt },
     { "QList<uint>&", marshall_QListUInt },
+
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   
     { "QList<QAbstractButton*>", marshall_QAbstractButtonList },
     { "QList<QActionGroup*>", marshall_QActionGroupList },
+#endif
+    
     { "QList<QAction*>", marshall_QActionList },
     { "QList<QAction*>&", marshall_QActionList },
     { "QList<QByteArray>", marshall_QByteArrayList },
@@ -2326,12 +2365,16 @@ Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
     { "QList<QByteArray>&", marshall_QByteArrayList },
     { "QList<QHostAddress>", marshall_QHostAddressList },
     { "QList<QHostAddress>&", marshall_QHostAddressList },
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   
     { "QList<QImageTextKeyLang>", marshall_QImageTextKeyLangList },
+#endif
     { "QList<QKeySequence>", marshall_QKeySequenceList },
     { "QList<QKeySequence>&", marshall_QKeySequenceList },
     { "QList<QLocale::Country>", marshall_QListLocaleCountry },
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/       
     { "QList<QListWidgetItem*>", marshall_QListWidgetItemList },
     { "QList<QListWidgetItem*>&", marshall_QListWidgetItemList },
+#endif
     { "QList<QModelIndex>", marshall_QModelIndexList },
     { "QList<QModelIndex>&", marshall_QModelIndexList },
     { "QList<QNetworkAddressEntry>", marshall_QNetworkAddressEntryList },
@@ -2349,6 +2392,7 @@ Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
     { "QList<double>&", marshall_QListqreal },
     { "QList<QObject*>", marshall_QObjectList },
     { "QList<QObject*>&", marshall_QObjectList },
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   
     { "QList<QTableWidgetItem*>", marshall_QTableWidgetItemList },
     { "QList<QTableWidgetItem*>&", marshall_QTableWidgetItemList },
     { "QList<QTableWidgetSelectionRange>", marshall_QTableWidgetSelectionRangeList },
@@ -2362,12 +2406,15 @@ Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
     { "QList<QTreeWidgetItem*>&", marshall_QTreeWidgetItemList },
     { "QList<QUndoStack*>", marshall_QUndoStackList },
     { "QList<QUndoStack*>&", marshall_QUndoStackList },
+#endif
     { "QList<QUrl>", marshall_QUrlList },
     { "QList<QUrl>&", marshall_QUrlList },
     { "QList<QVariant>", marshall_QVariantList },
     { "QList<QVariant>&", marshall_QVariantList },
+ #if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/      
     { "QList<QWidget*>", marshall_QWidgetPtrList },
     { "QList<QWidget*>&", marshall_QWidgetPtrList },
+ #endif   
     { "qlonglong", marshall_it<long long> },
     { "qlonglong&", marshall_it<long long> },
     //{ "QMap<int,QVariant>", marshall_QMapintQVariant },
@@ -2431,8 +2478,10 @@ Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
     { "QVector<QVariant>&", marshall_QVariantVector },
     { "QVector<QPair<double,QColor> >&", marshall_QVectorQPairDoubleQColor },
     { "QVector<QPair<double,QColor> >", marshall_QVectorQPairDoubleQColor },
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/
     { "QWidgetList", marshall_QWidgetList },
     { "QWidgetList&", marshall_QWidgetList },
+#endif
     { "QwtArray<double>", marshall_QVectorqreal },
     { "QwtArray<double>&", marshall_QVectorqreal },
     { "QwtArray<int>", marshall_QVectorint },
@@ -2445,7 +2494,7 @@ Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
     { "void", marshall_void },
     { "void**", marshall_voidP_array },
     { "WId", marshall_it<WId> },
-#if QT_VERSION >= 0x40200
+#if (QT_VERSION >= 0x40200)  && (QT_VERSION <= 0x050C00) //PTZ200104  in /qt5/QtWidgets/   
     { "QList<QGraphicsItem*>", marshall_QGraphicsItemList },
     { "QList<QGraphicsItem*>&", marshall_QGraphicsItemList },
     { "QList<QStandardItem*>", marshall_QStandardItemList },
@@ -2454,7 +2503,9 @@ Q_DECL_EXPORT TypeHandler Qt4_handlers[] = {
     { "QList<QUndoStack*>&", marshall_QUndoStackList },
 #endif
 #if QT_VERSION >= 0x40300
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   
     { "QList<QMdiSubWindow*>", marshall_QMdiSubWindowList },
+#endif
     { "QList<QSslCertificate>", marshall_QSslCertificateList },
     { "QList<QSslCertificate>&", marshall_QSslCertificateList },
     { "QList<QSslCipher>", marshall_QSslCipherList },

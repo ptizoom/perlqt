@@ -59,7 +59,9 @@
 #include <QtCore/qmap.h>
 #include <QtCore/qpair.h>
 #include <QtCore/qshareddata.h>
-#include <qdbusmacros.h>
+
+//PTZ191216 #include <qdbusmacros.h>
+#include <QtDBus/qtdbusglobal.h>
 
 QT_BEGIN_NAMESPACE
 

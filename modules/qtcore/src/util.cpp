@@ -14,9 +14,15 @@
 #include <QtGui/QIcon>
 #include <QtGui/QBitmap>
 #include <QtGui/QCursor>
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   
 #include <QtGui/QGraphicsItem>
 #include <QtGui/QLayoutItem>
 #include <QtGui/QSizePolicy>
+#else
+#include <QtWidgets/QGraphicsItem>
+#include <QtWidgets/QLayoutItem>
+#include <QtWidgets/QSizePolicy>
+#endif
 #include <QtGui/QKeySequence>
 #include <QtGui/QTextLength>
 #include <QtGui/QTextFormat>
@@ -665,10 +671,12 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
                 o->smoke = Smoke::classMap["QInputMethodEvent"].smoke;
                 o->classId = o->smoke->idClass("QInputMethodEvent").index;
                 break;
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   		
             case QEvent::AccessibilityPrepare:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
                 o->classId = o->smoke->idClass("QEvent").index;
                 break;
+#endif
             case QEvent::TabletMove:
             case QEvent::TabletPress:
             case QEvent::TabletRelease:
@@ -750,10 +758,12 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
                 o->smoke = Smoke::classMap["QHoverEvent"].smoke;
                 o->classId = o->smoke->idClass("QHoverEvent").index;
                 break;
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   			
             case QEvent::AccessibilityHelp:
             case QEvent::AccessibilityDescription:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
                 o->classId = o->smoke->idClass("QEvent").index;
+#endif
 #if QT_VERSION >= 0x40200
             case QEvent::GraphicsSceneMouseMove:
             case QEvent::GraphicsSceneMousePress:
@@ -1686,7 +1696,14 @@ XS(XS_qvariant_value) {
             XSRETURN(1);
         }
         else if (strcmp(variant->typeName(), "QDBusVariant") == 0) {
-            void *value_ptr = QMetaType::construct(QMetaType::type(variant->typeName()), (void *) variant->constData());
+	  //TODO:PTZ200107 cannot call member function '' void* QMetaType::construct(void*, const void*) const '' without object
+	  // use this or o or variant or else?
+	  void *value_ptr
+	    = ((const QMetaType*)variant)
+	    ->QMetaType::construct((void *) QMetaType::type(variant->typeName())
+	  //TODO:PTZ200107 warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+				   , (const void *) variant->constData());
+	  
             Smoke::ModuleIndex mi = o->smoke->findClass("QVariant");
 
             smokeperl_object* obj = alloc_smokeperl_object(
@@ -1699,8 +1716,12 @@ XS(XS_qvariant_value) {
             ST(0) = sv_2mortal(retval);
             XSRETURN(1);
         }
-
-        void *value_ptr = QMetaType::construct(QMetaType::type(variant->typeName()), (void *) variant->constData());
+	//TODO:PTZ200107 cannot call member function '' void* QMetaType::construct(void*, const void*) const '' without object
+	// use this or o or variant or else?
+	void *value_ptr
+	  = ((const QMetaType*)variant)
+	  ->QMetaType::construct((void *) QMetaType::type(variant->typeName())
+				 , (void *) variant->constData());
         Smoke::ModuleIndex mi = o->smoke->findClass(variant->typeName());
 
         smokeperl_object* obj = alloc_smokeperl_object(

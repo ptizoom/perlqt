@@ -1,6 +1,9 @@
 #ifndef PERLQT_UTIL_H
 #define PERLQT_UTIL_H
+
 // Include Qt4 headers first, to avoid weirdness that the perl headers cause
+//TODO:PTZ20200107  mostly, this shity header is called util.h which could be confused by /usr/lib/x86_64-linux-gnu/perl/5.30/CORE/util.h...
+//
 #include <QtCore/QHash>
 #include <QtCore/QList>
 #include <QtCore/QMetaMethod>
@@ -12,7 +15,9 @@
 #include <QtGui/QIcon>
 #include <QtGui/QBitmap>
 #include <QtGui/QCursor>
+#if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/
 #include <QtGui/QSizePolicy>
+#endif
 #include <QtGui/QKeySequence>
 #include <QtGui/QTextLength>
 #include <QtGui/QTextFormat>

@@ -55,7 +55,8 @@
 #define QDBUSMETAOBJECTPRIVATE_H
 
 #include <QtCore/qmetaobject.h>
-#include <qdbusmacros.h>
+//PTZ191216 #include <qdbusmacros.h>
+#include <QtDBus/qtdbusglobal.h>
 
 QT_BEGIN_NAMESPACE
 
