@@ -18,12 +18,17 @@
 #include <QtGui/QTextFormat>
 
 // Perl headers
-extern "C" {
+//extern "C" { //START_EXTERN_C
+//#include <stddef.h> //size_t
+//PTZ20200107 but also U16
+//#define	U16  __U16_TYPE
+//#define	PERL_DRAND48_QUAD 1
+
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
 #include "ppport.h"
-}
+//} //END_EXTERN_C
 
 // Now my own headers
 #include "smoke.h"

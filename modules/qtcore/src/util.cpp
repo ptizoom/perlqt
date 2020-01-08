@@ -21,22 +21,8 @@
 #include <QtGui/QTextLength>
 #include <QtGui/QTextFormat>
 
-// Perl headers
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
+#include "perlqtcore_util.h"
 
-// Now my own headers
-#include "smoke.h"
-#include "QtCore.h"
-#include "binding.h"
-#include "smokeperl.h"
-#include "util.h"
-#include "marshall_types.h" // Method call classes
-#include "handlers.h" // for install_handlers function
 
 extern bool qRegisterResourceData(int, const unsigned char *, const unsigned char *, const unsigned char *);
 extern bool qUnregisterResourceData(int, const unsigned char *, const unsigned char *, const unsigned char *);
