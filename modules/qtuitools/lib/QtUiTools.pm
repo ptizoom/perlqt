@@ -24,10 +24,10 @@ use base qw(Qt::_internal);
 
 sub init {
     foreach my $c ( @{getClassList()} ) {
-        QtUiTools4::_internal->init_class($c);
+        QtUiTools::_internal->init_class($c);
     }
     foreach my $e ( @{getEnumList()} ) {
-        QtUiTools4::_internal->init_enum($e);
+        QtUiTools::_internal->init_enum($e);
     }
 }
 
@@ -37,19 +37,22 @@ sub normalize_classname {
     return $cxxClassName;
 }
 
-package QtUiTools4;
+package QtUiTools;
 
 use strict;
 use warnings;
+
+#PTZ191214
+use PerlQt5::QtUiTools;
+
+1;
+
+__END__
+
 use QtCore;
-
 require XSLoader;
-
 our $VERSION = '0.96';
-
 QtCore::loadModule('QtUiTools4', $VERSION);
-
 QtUiTools::_internal::init();
-
 1;
 

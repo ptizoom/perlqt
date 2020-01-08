@@ -27,7 +27,7 @@
 extern PerlQt::Binding binding;
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 extern "C" void init_qtcore_Smoke();
-extern Q_DECL_EXPORT QHash<Smoke*, PerlQt4Module> perlqt_modules;
+extern Q_DECL_EXPORT QHash<Smoke*, PerlQtModule> perlqt_modules;
 extern SV* sv_qapp;
 Q_DECL_EXPORT QList<Smoke*> smokeList;
 QList<QString> arrayTypes;
@@ -175,7 +175,7 @@ getNativeMetaObject( smokeId, methodId )
     CODE:
         smokeperl_object* nothis = alloc_smokeperl_object( false, 0, 0, 0 );
         Smoke* smoke = smokeList[smokeId];
-        PerlQt4::MethodCall call(
+        PerlQt::MethodCall call(
             smoke,
             methodId,
             nothis,
@@ -461,11 +461,11 @@ BOOT:
     init_qtcore_Smoke();
     smokeList << qtcore_Smoke;
 
-    binding = PerlQt4::Binding(qtcore_Smoke);
+    binding = PerlQt::Binding(qtcore_Smoke);
     PerlQtModule module = { "PerlQtCore", resolve_classname_qt, 0, &binding };
     perlqt_modules[qtcore_Smoke] = module;
 
-    install_handlers(Qt4_handlers);
+    install_handlers(Qt_handlers);
 
     pointer_map = get_hv( "Qt::_internal::pointer_map", FALSE );
 

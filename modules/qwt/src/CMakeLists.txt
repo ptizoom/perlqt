@@ -32,7 +32,7 @@ add_library(perl_qwt SHARED ${qwt_LIBRARY_SRC})
 
 target_link_libraries(perl_qwt
   ${SMOKE_QWT_LIBRARY}
-  perlqtcore4
+  perlqtcore
   smokeqwt #TODO:PTZ181006 is missing from  ${SMOKE_QWT_LIBRARY}
   )
 

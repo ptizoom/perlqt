@@ -7,8 +7,8 @@
 #define Q_DECL_EXPORT
 #endif
 
-namespace PerlQt4 {
-
+namespace PerlQt {
+  //TODO:PTZ200104 use SmokePerlBinding instead ?
 class Q_DECL_EXPORT Binding : public SmokeBinding {
 public:
     Binding();
@@ -20,6 +20,6 @@ public:
 
 }
 
-extern PerlQt4::Binding binding;
+extern PerlQt::Binding binding;
 
 #endif // BINDING_H

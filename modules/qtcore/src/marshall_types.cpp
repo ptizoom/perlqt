@@ -211,7 +211,7 @@ smokeStackFromQt4Stack(Smoke::Stack stack, void ** _o, int start, int end, QList
     }
 }
 
-namespace PerlQt4 {
+namespace PerlQt {
 
     MethodReturnValueBase::MethodReturnValueBase(Smoke *smoke, Smoke::Index methodIndex, Smoke::Stack stack) :
       _smoke(smoke), _methodIndex(methodIndex), _stack(stack) {

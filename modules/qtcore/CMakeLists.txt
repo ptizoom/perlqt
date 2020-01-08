@@ -15,7 +15,7 @@ else()
 endif(WIN32)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/blib/arch/auto/PerlQt5/${libraryName})
 
-add_library(perlqtcore5 SHARED
+add_library(perlqt5core SHARED
     ${CMAKE_CURRENT_BINARY_DIR}/qtcore.cpp
     can.cpp
     invokeslot.cpp
@@ -24,7 +24,7 @@ add_library(perlqtcore5 SHARED
     qtcore_handlers.cpp
 )
 
-target_link_libraries(perlqtcore5
+target_link_libraries(perlqt5core
     Qt5::Core
     ${PERL_LIBRARY}
     ${SMOKE_BASE_LIBRARY}
@@ -33,14 +33,14 @@ target_link_libraries(perlqtcore5
     smokeperl
 )
 
-set_target_properties(perlqtcore5 PROPERTIES
+set_target_properties(perlqt5core PROPERTIES
     OUTPUT_NAME ${libraryName}
     PREFIX ""
     INSTALL_NAME_DIR ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/PerlQt5/${libraryName}/
 )
 
 install(
-    TARGETS perlqtcore5
+    TARGETS perlqt5core
     EXPORT PerlQtExport
     DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/PerlQt5/${libraryName}/
 )
@@ -58,6 +58,7 @@ add_subdirectory(tests)
 include (FindPerlMore)
 
 add_subdirectory(lib)
-#PTZ191211 add_subdirectory(src)
+#PTZ191211 ::QtCore and ::Qt but really should be added to PerlQt5::
+add_subdirectory(src)
 add_subdirectory(tools)
 add_subdirectory(t)

@@ -18,10 +18,10 @@ extern "C" {
 #include "binding.h" // for definition of PerlQt4::Binding
 #include "smokeperl.h" // for smokeperl_object
 
-void smokeStackToQt4Stack(Smoke::Stack stack, void ** o, int start, int end, QList<MocArgument*> args);
-void smokeStackFromQt4Stack(Smoke::Stack stack, void ** _o, int start, int end, QList<MocArgument*> args);
+void smokeStackToQtStack(Smoke::Stack stack, void ** o, int start, int end, QList<MocArgument*> args);
+void smokeStackFromQtStack(Smoke::Stack stack, void ** _o, int start, int end, QList<MocArgument*> args);
 
-namespace PerlQt4 {
+namespace PerlQt {
 
 class Q_DECL_EXPORT MethodReturnValueBase : public Marshall {
 public:

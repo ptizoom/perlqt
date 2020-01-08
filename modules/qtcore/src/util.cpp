@@ -46,8 +46,8 @@ extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 extern Q_DECL_EXPORT QList<Smoke*> smokeList;
 extern Q_DECL_EXPORT QList<QString> arrayTypes;
 
-PerlQt4::Binding binding;
-QHash<Smoke*, PerlQt4Module> perlqt_modules;
+PerlQt::Binding binding;
+QHash<Smoke*, PerlQtModule> perlqt_modules;
 
 // Global variables
 Q_DECL_EXPORT SV* sv_this = 0;
@@ -301,7 +301,7 @@ QList<MocArgument*> getMocArguments(Smoke* smoke, const char * typeName, QList<Q
                 // invoked. However, that isn't true for a dataUpdated() slot
                 // in a PlasmaScripting::Applet
                 if (typeId == 0) {
-                    QHash<Smoke*, PerlQt4Module>::const_iterator it;
+                    QHash<Smoke*, PerlQtModule>::const_iterator it;
                     for (it = perlqt_modules.constBegin(); it != perlqt_modules.constEnd(); ++it) {
                         smoke = it.key();
                         targetType = name;
@@ -915,7 +915,7 @@ void* sv_to_ptr(SV* sv) {
 }
 
 // Remove the values entered in pointer_map hash, called from
-// PerlQt4::Binding::deleted when the destructor of a smoke object is called
+// PerlQt5::Binding::deleted when the destructor of a smoke object is called
 void unmapPointer( smokeperl_object* o, Smoke::Index classId, void* lastptr) {
     HV* hv = pointer_map;
     void* ptr = o->smoke->cast( o->ptr, o->classId, classId );
@@ -1032,7 +1032,7 @@ XS(XS_qobject_qt_metacast) {
     XSRETURN(1);
 }
 
-/* Should mimic Qt4's QObject::findChildren method with this syntax:
+/* Should mimic Qt5's QObject::findChildren method with this syntax:
      obj.findChildren("Object Type", "Optional Widget Name")
 */
 XS(XS_find_qobject_children) {
@@ -1135,7 +1135,7 @@ XS(XS_qabstract_item_model_rowcount) {
     dXSARGS;
     smokeperl_object *o = sv_obj_info(ST(0));
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::rowCount called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::rowCount called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::rowCount called on a"
@@ -1169,7 +1169,7 @@ XS(XS_qabstract_item_model_columncount) {
     smokeperl_object *o = sv_obj_info(ST(0));
 
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::columnCount called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::columnCount called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::columnCount called on a"
@@ -1185,7 +1185,7 @@ XS(XS_qabstract_item_model_columncount) {
 
         if(!mi)
             croak( "%s", "1st argument to Qt::AbstractItemModel::columnCount is"
-                " not a Qt4 object");
+                " not a Qt5 object");
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::columnCount is"
                 " not a Qt::ModelIndex" );
@@ -1202,7 +1202,7 @@ XS(XS_qabstract_item_model_data) {
     dXSARGS;
     smokeperl_object * o = sv_obj_info(ST(0));
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::data called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::data called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::data called on a"
@@ -1212,7 +1212,7 @@ XS(XS_qabstract_item_model_data) {
     smokeperl_object * mi = sv_obj_info(ST(1));
     if(!mi)
         croak( "%s", "1st argument to Qt::AbstractItemModel::data is"
-            " not a Qt4 object");
+            " not a Qt5 object");
     if(isDerivedFrom(mi, "QModelIndex") == -1)
         croak( "%s", "1st argument to Qt::AbstractItemModel::data is"
             " not a Qt::ModelIndex" );
@@ -1249,7 +1249,7 @@ XS(XS_qabstract_item_model_setdata) {
     }
     smokeperl_object * o = sv_obj_info(ST(0));
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::setData called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::setData called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::setData called on a"
@@ -1259,16 +1259,16 @@ XS(XS_qabstract_item_model_setdata) {
     smokeperl_object * mi = sv_obj_info(ST(1));
     if(!mi)
         croak( "%s", "1st argument to Qt::AbstractItemModel::setData is"
-            " not a Qt4 object");
+            " not a Qt5 object");
     if(isDerivedFrom(mi, "QModelIndex") == -1)
         croak( "%s", "1st argument to Qt::AbstractItemModel::setData is"
-            " not a Qt4::ModelIndex" );
+            " not a Qt5::ModelIndex" );
 	QModelIndex * modelIndex = (QModelIndex *) mi->ptr;
 
     smokeperl_object * v = sv_obj_info(ST(2));
     if(!v)
         croak( "%s", "2nd argument to Qt::AbstractItemModel::setData is"
-            " not a Qt4 object");
+            " not a Qt5 object");
     if(isDerivedFrom(v, "QVariant") == -1)
         croak( "%s", "2nd argument to Qt::AbstractItemModel::setData is"
             " not a Qt::Variant" );
@@ -1299,7 +1299,7 @@ XS(XS_qabstract_item_model_insertrows) {
     dXSARGS;
     smokeperl_object *o = sv_obj_info(ST(0));
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::insertRows called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::insertRows called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::insertRows called on a"
@@ -1320,7 +1320,7 @@ XS(XS_qabstract_item_model_insertrows) {
     	smokeperl_object * mi = sv_obj_info(ST(3));
         if(!mi)
             croak( "%s", "1st argument to Qt::AbstractItemModel::insertRows is"
-                " not a Qt4 object");
+                " not a Qt5 object");
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::insertRows is"
                 " not a Qt::ModelIndex" );
@@ -1341,7 +1341,7 @@ XS(XS_qabstract_item_model_insertcolumns) {
     dXSARGS;
     smokeperl_object *o = sv_obj_info(ST(0));
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::insertColumns called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::insertColumns called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::insertColumns called on a"
@@ -1362,7 +1362,7 @@ XS(XS_qabstract_item_model_insertcolumns) {
     	smokeperl_object * mi = sv_obj_info(ST(3));
         if(!mi)
             croak( "%s", "1st argument to Qt::AbstractItemModel::insertColumns is"
-                " not a Qt4 object");
+                " not a Qt5 object");
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::insertColumns is"
                 " not a Qt::ModelIndex" );
@@ -1382,7 +1382,7 @@ XS(XS_qabstract_item_model_removerows) {
     dXSARGS;
     smokeperl_object *o = sv_obj_info(ST(0));
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::removeRows called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::removeRows called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::removeRows called on a"
@@ -1403,7 +1403,7 @@ XS(XS_qabstract_item_model_removerows) {
     	smokeperl_object * mi = sv_obj_info(ST(3));
         if(!mi)
             croak( "%s", "1st argument to Qt::AbstractItemModel::removeRows is"
-                " not a Qt4 object");
+                " not a Qt5 object");
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::removeRows is"
                 " not a Qt::ModelIndex" );
@@ -1423,7 +1423,7 @@ XS(XS_qabstract_item_model_removecolumns) {
     dXSARGS;
     smokeperl_object *o = sv_obj_info(ST(0));
     if(!o)
-        croak( "%s", "Qt::AbstractItemModel::removeColumns called on a non-Qt4"
+        croak( "%s", "Qt::AbstractItemModel::removeColumns called on a non-Qt5"
             " object");
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::removeColumns called on a"
@@ -1444,7 +1444,7 @@ XS(XS_qabstract_item_model_removecolumns) {
     	smokeperl_object * mi = sv_obj_info(ST(3));
         if(!mi)
             croak( "%s", "1st argument to Qt::AbstractItemModel::removeColumns is"
-                " not a Qt4 object");
+                " not a Qt5 object");
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::removeColumns is"
                 " not a Qt::ModelIndex" );
@@ -1843,7 +1843,7 @@ XS(XS_qvariant_from_value) {
                         HvNAME(ST(1)) ) == 0 )
             {
                 Smoke::Index methodId = meth.smoke->ambiguousMethodList[i];
-                PerlQt4::MethodCall c(qtcore_Smoke, methodId, o, SP, 0);
+                PerlQt::MethodCall c(qtcore_Smoke, methodId, o, SP, 0);
                 c.next();
                 ST(0) = sv_2mortal(c.var());
                 XSRETURN(1);
@@ -2133,7 +2133,7 @@ XS(XS_AUTOLOAD) {
     else {
         // We're calling a c++ method
 
-        // Get the classId (eventually converting SUPER to the right Qt4 class)
+        // Get the classId (eventually converting SUPER to the right Qt5 class)
         SV* moduleIdRef = package_classId( package );
         Smoke::ModuleIndex mi;
 
@@ -2251,7 +2251,7 @@ XS(XS_AUTOLOAD) {
         }
 #endif
 
-        PerlQt4::MethodCall call( mi.smoke,
+        PerlQt::MethodCall call( mi.smoke,
                          mi.index,
                          call_this,
                          savestack,
@@ -2353,7 +2353,7 @@ XS(XS_qt_metacall){
             }
             name.replace(*rx, "");
 
-            PerlQt4::InvokeSlot slot( sv_this, name.toLatin1().data(), mocArgs, _a );
+            PerlQt::InvokeSlot slot( sv_this, name.toLatin1().data(), mocArgs, _a );
             slot.next();
         }
     }
@@ -2443,12 +2443,12 @@ XS(XS_signal){
     // qobj: Whoever is emitting the signal, cast to a QObject*
     // index: The index of the current signal in QMetaObject's array of sig/slots
     // items: The number of arguments we are calling with
-    // args: A QList, whose length is items + 1, that tell us how to convert the args to ones Qt4 likes
+    // args: A QList, whose length is items + 1, that tell us how to convert the args to ones Qt5 likes
     // SP: ...not sure if this is correct.  If items=0, we'll pass sp+1, which
     // should be out of bounds.  But it doesn't matter, since the signal won't
     // do anything with those.
     // retval: Will (at some point, maybe) get populated with the return value from the signal.
-    PerlQt4::EmitSignal signal(qobj, metaobject, index, items, args, SP - items + 1, retval);
+    PerlQt::EmitSignal signal(qobj, metaobject, index, items, args, SP - items + 1, retval);
     signal.next();
 
     // TODO: Handle signal return value
