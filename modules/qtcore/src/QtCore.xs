@@ -335,13 +335,18 @@ make_metaObject(parentModuleId,parentMeta,stringdata_sv,data_sv)
         // null (0) bits, which the string functions will interpret as the end
         // of the string
         STRLEN len = SvLEN(stringdata_sv);
-        char* qt_meta_stringdata = new char[len];
-        memcpy( (void*)(qt_meta_stringdata), (void*)SvPV_nolen(stringdata_sv), len );
 
-        // Define our meta object
-        const QMetaObject staticMetaObject = {
-            { superdata, qt_meta_stringdata,
-              qt_meta_data, 0 }
+	//TODO::PTZ20200107 "const" is the killer, but is is needed, because this array should be static
+	// passing ‘const QByteArray’ as ‘this’ argument discards qualifiers
+	QByteArray qt_meta_stringdata(SvPV_nolen(stringdata_sv), len);
+
+	// Define our meta object
+        const QMetaObject staticMetaObject
+	= {
+	   { superdata
+	     , qt_meta_stringdata.data_ptr()
+	     , qt_meta_data
+	     , 0 }
         };
         QMetaObject *meta = new QMetaObject;
         *meta = staticMetaObject;
