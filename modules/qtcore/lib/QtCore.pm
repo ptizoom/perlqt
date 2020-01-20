@@ -1299,9 +1299,15 @@ sub init_class {
     }
     push @{arrayByName(" $perlClassName\::ISA")}, 'Qt::base::_overload';
 
+
+#TODOPTZ200119
+#Subroutine Qt::GlobalSpace::_UTOLOAD redefined at /usr/src/perlqt5/bld/blib/lib/QtCore.pm line 1304.
+#Subroutine  Qt::GlobalSpace::_UTOLOAD redefined at /usr/src/perlqt5/bld/blib/lib/QtCore.pm line 1304.
     foreach my $sp ('', ' ') {
         my $where = $sp . $perlClassName;
-        installautoload($where);
+        installautoload($where)
+	    #PTZ200119
+	    unless(defined &{"$perlClassName\::_UTOLOAD"});
         # Putting this in one package gives XS_AUTOLOAD one spot to look for
         # the autoload variable
         package Qt::AutoLoad;
