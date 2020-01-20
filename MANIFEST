@@ -153,10 +153,10 @@ qtdeclarative/t/CMakeLists.txt
 qtdeclarative/t/a_loading.t
 qtgui/CMakeLists.txt
 qtgui/lib/CMakeLists.txt
-qtgui/lib/QtGui4.pm
+qtgui/lib/QtGui.pm
 qtgui/src/CMakeLists.txt
-qtgui/src/QtGui4.xs
-qtgui/src/qtgui4handlers.cpp
+qtgui/src/QtGui.xs
+qtgui/src/qtgui_handlers.cpp
 qtgui/t/CMakeLists.txt
 qtgui/t/a_loading.t
 qtgui/t/helpcontextsensitivehelp.t

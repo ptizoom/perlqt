@@ -3,7 +3,7 @@ package MyApp;
 use Test::More;
 
 use QtCore;
-use QtGui4;
+use QtGui;
 use QtCore::isa('Qt::Application');
 use QtCore::slots
         foo => ['int'],
@@ -38,7 +38,7 @@ package MySubApp;
 use Test::More;
 
 use QtCore;
-use QtGui4;
+use QtGui;
 use QtCore::isa('MyApp');
 
 sub NEW 
@@ -66,7 +66,7 @@ package main;
 use Test::More tests => 7;
 
 use QtCore;
-use QtGui4;
+use QtGui;
 use MySubApp;
 
 $a = 0;

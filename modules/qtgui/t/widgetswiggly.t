@@ -6,8 +6,8 @@ use strict;
 use warnings;
 
 use QtCore;
-use QtGui4;
-use QtTest4;
+use QtGui;
+use QtTest;
 use Dialog;
 use QtCore::isa qw(Qt::Object);
 use QtCore::slots
@@ -43,8 +43,8 @@ use strict;
 use warnings;
 
 use QtCore;
-use QtGui4;
-use QtTest4;
+use QtGui;
+use QtTest;
 use WidgetsWiggly;
 use Test::More tests=>1;
 

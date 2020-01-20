@@ -1,2 +1,2 @@
 use Test::More tests => 1;
-use_ok('QtGui4');
+use_ok('QtGui');

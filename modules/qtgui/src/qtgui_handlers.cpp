@@ -1,5 +1,5 @@
 /***************************************************************************
-                          qtgui4handlers.cpp  -  QtGui specific marshallers
+                          qtgui_handlers.cpp  -  QtGui specific marshallers
                              -------------------
     begin                : 03-29-2010
     copyright            : (C) 2010 Chris Burel
@@ -36,7 +36,7 @@ extern "C" {
 
 //DEF_VALUELIST_MARSHALLER( QTestAccessibilityEventList, QList<QTestAccessibilityEvent>, QTestAccessibilityEvent )
 
-TypeHandler QtGui4_handlers[] = {
+TypeHandler QtGui_handlers[] = {
     //{ "QList<QTestAccessibilityEvent>", marshall_QTestAccessibilityEventList },
     { "QFlags<QAbstractSpinBox::StepEnabledFlag>&", marshall_it< unsigned int *> },
     { "QFlags<QPaintEngine::DirtyFlag>&", marshall_it< unsigned int *> },

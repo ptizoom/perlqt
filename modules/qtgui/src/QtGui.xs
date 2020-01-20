@@ -1,5 +1,5 @@
 /***************************************************************************
-                          QtGui4.xs  -  QtGui perl extension
+                          QtGui.xs  -  QtGui perl extension
                              -------------------
     begin                : 03-29-2010
     copyright            : (C) 2010 by Chris Burel
@@ -45,15 +45,15 @@ resolve_classname_qtgui(smokeperl_object * o)
     return perlqt_modules[o->smoke].binding->className(o->classId);
 }
 
-extern TypeHandler QtGui4_handlers[];
+extern TypeHandler QtGui_handlers[];
 
-static PerlQt4::Binding bindingqtgui;
+static PerlQt::Binding bindingqtgui;
 
 DEF_LISTCLASS_FUNCTIONS(QItemSelection, QItemSelectionRange, QItemSelectionRange, Qt::ItemSelection)
 DEF_VECTORCLASS_FUNCTIONS(QPolygonF, QPointF, Qt::PolygonF)
 DEF_VECTORCLASS_FUNCTIONS(QPolygon, QPoint, Qt::Polygon)
 
-MODULE = QtGui4            PACKAGE = QtGui4::_internal
+MODULE = QtGui            PACKAGE = QtGui::_internal
 
 PROTOTYPES: DISABLE
 
@@ -90,10 +90,10 @@ getEnumList()
 #ifdef WIN32
 #undef XSPROTO
 #define XSPROTO(name) void Q_DECL_EXPORT name(pTHX_ CV* cv)
-#define boot_QtGui4 boot_PerlQtGui4
+#define boot_QtGui boot_PerlQtGui
 #endif
 
-MODULE = QtGui4            PACKAGE = QtGui4
+MODULE = QtGui            PACKAGE = QtGui
 
 PROTOTYPES: ENABLE
 
@@ -101,12 +101,12 @@ BOOT:
     init_qtgui_Smoke();
     smokeList << qtgui_Smoke;
 
-    bindingqtgui = PerlQt4::Binding(qtgui_Smoke);
+    bindingqtgui = PerlQt::Binding(qtgui_Smoke);
 
-    PerlQt4Module module = { "PerlQtGui4", resolve_classname_qtgui, 0, &bindingqtgui  };
+    PerlQtModule module = { "PerlQtGui", resolve_classname_qtgui, 0, &bindingqtgui  };
     perlqt_modules[qtgui_Smoke] = module;
 
-    install_handlers(QtGui4_handlers);
+    install_handlers(QtGui_handlers);
 
     newXS(" Qt::PolygonF::EXISTS"   , XS_QPolygonF_exists, __FILE__);
     newXS(" Qt::PolygonF::FETCH"    , XS_QPolygonF_at, __FILE__);

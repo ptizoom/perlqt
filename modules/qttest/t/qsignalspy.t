@@ -5,7 +5,7 @@ package MyWidget;
 use strict;
 use warnings;
 use QtCore;
-use QtGui4;
+use QtGui;
 use QtCore::isa qw( Qt::Widget );
 use QtCore::signals
     doCoolStuff => ['int'];
@@ -29,8 +29,8 @@ package main;
 use strict;
 use warnings;
 use QtCore;
-use QtGui4;
-use QtTest4;
+use QtGui;
+use QtTest;
 use MyWidget;
 
 use Test::More tests => 28;

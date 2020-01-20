@@ -58,9 +58,9 @@ package Qt3Support4;
 use strict;
 use warnings;
 use QtCore;
-use QtGui4;
-use QtNetwork4;
-use QtSql4;
+use QtGui;
+use QtNetwork;
+use QtSql;
 
 require XSLoader;
 

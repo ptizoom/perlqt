@@ -6,8 +6,8 @@ use strict;
 use warnings;
 
 use QtCore;
-use QtGui4;
-use QtTest4;
+use QtGui;
+use QtTest;
 use Sender;
 use lib '../broadcastreceiver';
 use Receiver;
@@ -63,8 +63,8 @@ use strict;
 use warnings;
 
 use QtCore;
-use QtGui4;
-use QtTest4 qw(QTEST_MAIN);
+use QtGui;
+use QtTest qw(QTEST_MAIN);
 use NetworkBroadcastTest;
 use Test::More tests => 3;
 

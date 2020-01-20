@@ -1925,7 +1925,7 @@ QtCore - Perl bindings for the QtCore version 4 library
 =head1 SYNOPSIS
 
   use QtCore;
-  use QtGui4;
+  use QtGui;
   my $app = Qt::Application(\@ARGV);
   my $button = Qt::PushButton( 'Hello, World!', undef);
   $button->show();

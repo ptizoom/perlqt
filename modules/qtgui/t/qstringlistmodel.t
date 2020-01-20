@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use blib;
 use QtCore;
-use QtGui4;
+use QtGui;
 use QtCore::isa qw( Qt::StringListModel );
 
 sub NEW {

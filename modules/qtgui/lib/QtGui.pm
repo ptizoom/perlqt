@@ -1,5 +1,5 @@
 #***************************************************************************
-#                          QtGui4.pm  -  QtGui perl client lib
+#                          QtGui.pm  -  QtGui perl client lib
 #                             -------------------
 #    begin                : 03-29-2010
 #    copyright            : (C) 2010 by Chris Burel
@@ -15,7 +15,7 @@
 # *                                                                         *
 # ***************************************************************************
 
-package QtGui4::_internal;
+package QtGui::_internal;
 
 use strict;
 use warnings;
@@ -31,14 +31,14 @@ sub init {
     @Qt::_internal::vectorTypes{qw(Qt::Polygon Qt::PolygonF Qt::ItemSelection)}
         = undef;
     foreach my $c ( @{getClassList()} ) {
-        QtGui4::_internal->init_class($c);
+        QtGui::_internal->init_class($c);
     }
     foreach my $e ( @{getEnumList()} ) {
-        QtGui4::_internal->init_enum($e);
+        QtGui::_internal->init_enum($e);
     }
 }
 
-package QtGui4;
+package QtGui;
 
 use strict;
 use warnings;
@@ -48,9 +48,9 @@ require XSLoader;
 
 our $VERSION = '0.96';
 
-QtCore::loadModule('QtGui4', $VERSION);
+QtCore::loadModule('QtGui', $VERSION);
 
-QtGui4::_internal::init();
+QtGui::_internal::init();
 
 package Qt;
 

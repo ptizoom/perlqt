@@ -4,8 +4,8 @@ use strict;
 use warnings;
 use Devel::Peek;
 use QtCore;
-use QtGui4;
-use QtNetwork4;
+use QtGui;
+use QtNetwork;
 
 my $app = Qt::Application( \@ARGV );
 

@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 use QtCore;
-use QtGui4;
-use QtTest4;
+use QtGui;
+use QtTest;
 
 use Test::More tests => 23;
 
