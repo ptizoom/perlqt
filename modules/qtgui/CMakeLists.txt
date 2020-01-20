@@ -1,6 +1,7 @@
 xsubpp(qtgui.xs ${CMAKE_CURRENT_BINARY_DIR}/qtgui.cpp)
 
 include_directories(
+    ${Qt5Gui_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PERL_INCLUDE_PATH}
 )
@@ -50,13 +51,8 @@ install(FILES QtGui.pm DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/PerlQt5)
 
 add_subdirectory(tests)
 
-#PTZ191213 add_subdirectory( src )
-include_directories( ${Qt5Gui_INCLUDE_DIRS} )
-list(APPEND QT_QTXML_LIBRARY Qt5::Xml)
-list(APPEND QT_QTCORE_LIBRARY ${Qt5Core_LIBRARIES})
-list(APPEND QT_QTDBUS_LIBRARY Qt5::DBus)
-list(APPEND QT_QTGUI_LIBRARY ${Qt5Gui_LIBRARIES})
-
+#PTZ191213
+add_subdirectory( src )
 add_subdirectory( lib )
 add_subdirectory( t )
 if( ENABLE_GUI_TESTS )

@@ -1,5 +1,5 @@
 # Class tests
-macro_prove(perlqt_qtgui4_load      ${CMAKE_CURRENT_SOURCE_DIR}/a_loading.t)
+macro_prove(perlqt_qtgui_load      ${CMAKE_CURRENT_SOURCE_DIR}/a_loading.t)
 macro_prove(perlqt_qpolygon         ${CMAKE_CURRENT_SOURCE_DIR}/qpolygon.t)
 macro_prove(perlqt_qpolygonf        ${CMAKE_CURRENT_SOURCE_DIR}/qpolygonf.t)
 macro_prove(perlqt_qstringlistmodel ${CMAKE_CURRENT_SOURCE_DIR}/qstringlistmodel.t)

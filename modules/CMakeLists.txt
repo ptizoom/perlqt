@@ -1,3 +1,5 @@
+include(FindPerlExtUtils)
+
 function(addTestsFromTFiles)
     file(GLOB testFiles *.t)
     list(SORT testFiles)
@@ -41,5 +43,34 @@ macro_optional_add_bindings(SMOKE_QTWEBENGINEWIDGETS_FOUND  "QtWebEngineWidgets"
 macro_optional_add_bindings(SMOKE_QTWIDGETS_FOUND           "QtWidgets"           qtwidgets)
 macro_optional_add_bindings(SMOKE_QTXML_FOUND               "QtXml"               qtxml)
 macro_optional_add_bindings(SMOKE_QTXMLPATTERNS_FOUND       "QtXmlPatterns"       qtxmlpatterns)
+
+
+
+if (0)
+
+# This assumes there will be a release version of the qtcore library available
+GET_FILENAME_COMPONENT(QT_LIB_DIR ${QT_QTCORE_LIBRARY_RELEASE} PATH)
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES ${QT_LIB_DIR} isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:${QT_LIB_DIR}")
+ENDIF("${isSystemDir}" STREQUAL "-1")
+
+macro_optional_add_bindings(SMOKE_QT3SUPPORT_FOUND    "Qt3Support"    qt3support)
+macro_optional_add_bindings(SMOKE_QTDECLARATIVE_FOUND "QtDeclarative" qtdeclarative)
+macro_optional_add_bindings(SMOKE_QTWEBKIT_FOUND      "QtWebKit"      qtwebkit)
+macro_optional_add_bindings(SMOKE_PHONON_FOUND "Phonon" phonon)
+macro_optional_add_bindings(SMOKE_QCI_FOUND "QScintilla" qsci)
+macro_optional_add_bindings(SMOKE_QWT_FOUND "Qwt" qwt)
+macro_optional_add_bindings(SMOKE_QIMAGEBLITZ_FOUND "QImageBlitz" qimageblitz)
+macro_display_bindings_log()
+
+install(EXPORT PerlQtExport DESTINATION ${CMAKE_INSTALL_PREFIX}/share/perlqt/cmake NAMESPACE PERLQT_)
+
+endif (0)
+
+
+
+
+
 
 macro_display_bindings_log()

@@ -28,5 +28,7 @@ FUNCTION( MACRO_PROVE _testname _path)
         set(exe ${CMAKE_COMMAND})
     endif(_workingdir)
 
+    list(APPEND prove_args --verbose   --failures  --parse)
+    #PTZ200118 not yet working ... as cmake tries to exec it: list(PREPEND exe PERL_DL_DEBUG=1)
     add_test(${_testname} ${exe} ${prove_args} ${escaped_path})
 ENDFUNCTION( MACRO_PROVE _testname _path )

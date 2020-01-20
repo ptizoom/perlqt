@@ -22,6 +22,7 @@ add_library(perlqt5core SHARED
     perlqtobject.cpp
     perlqtmetaobject.cpp
     qtcore_handlers.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/qtcore.bs
 )
 
 target_link_libraries(perlqt5core
@@ -44,14 +45,28 @@ install(
     EXPORT PerlQtExport
     DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/PerlQt5/${libraryName}/
 )
-
+#TODO:PTZ200116 I know, better use ExtUtils packages, but hey here .bs file might need TLC to redirect sub-package
+# libraries (eg. smokegen.so etc..) to this  intermediary ${CMAKE_BINARY_DIR}/lib directory....
+# tricky.
+#
 add_custom_target(
     perlqt5corepm ALL
-    ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/QtCore.pm ${CMAKE_BINARY_DIR}/blib/lib/PerlQt5/QtCore.pm
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/QtCore.pm ${CMAKE_BINARY_DIR}/blib/lib/PerlQt5/QtCore.pm
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/qtcore.bs ${LIBRARY_OUTPUT_PATH}/${libraryName}.bs
 )
+
+perl_extutils_mkbootstrap(qtcore perlqt5core)
+install(FILES qtcore.bs
+  OUTPUT_NAME ${libraryName}.bs
+  EXPORT PerlQtExport
+  DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/PerlQt5/${libraryName}/
+  )
+
 
 install(FILES QtCore.pm DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/PerlQt5)
 
+
+  
 add_subdirectory(tests)
 
 #from QtCore4
