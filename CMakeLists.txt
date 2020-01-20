@@ -17,38 +17,28 @@ set(USE_BUILD_DIR_FOR_TESTS OFF CACHE BOOL "Use to toggle between using the buil
 
 find_package(Perl REQUIRED)
 find_package(PerlLibs REQUIRED)
-find_package(Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt5
-    COMPONENTS
-    DBus
-    Gui
-    Help
-    Multimedia
-    MultimediaWidgets
-    Network
-    OpenGL
-    Positioning
-    PrintSupport
-    Qml
-    Quick
-    QuickWidgets
-    Script
-    Sql
-    Svg
-    Test
-    UiTools
-    WebChannel
-    WebEngineCore
-    WebEngineWidgets
-    Widgets
-    Xml
-    XmlPatterns
-    QUIET
-    )
+
+set(_qt_comps
+  DBus  Help Multimedia MultimediaWidgets
+  Network  OpenGL    Positioning    PrintSupport
+  Qml    Quick    QuickWidgets
+  Script    Sql    Svg    Test    UiTools    WebChannel    WebEngineCore
+  WebEngineWidgets    Widgets    Xml    XmlPatterns
+  )
+set(_qt_comps_req 
+  Core Gui
+  )
+
+find_package(Qt5 COMPONENTS ${_qt_comps_req} REQUIRED)
+find_package(Qt5 COMPONENTS ${_qt_comps}     QUIET)
+
+#PTZ200118 back compatibility with QT3,QT4 perlqt projects
+foreach(_cmps ${_qt_comps_req} ${_qt_comps})
+  string(TOUPPER ${_cmps} _u_cmps)
+  set(QT_QT${_u_cmps}_LIBRARY ${Qt5${_cmps}_LIBRARIES})
+endforeach()
   
-#PTZ191127 could be smoke is here with a better version....
-#add_subdirectory(smokegen)
-#add_subdirectory(smokeqt)
+#PTZ191127 could it be that smoke is here with a better version....
 include(ExternalProject)
 set(_src_d ${PROJECT_SOURCE_DIR}/smokegen)
 ExternalProject_Add(ep_smokegenerator
@@ -65,8 +55,15 @@ ExternalProject_Add(ep_smokeqt
   #GIT_REPOSITORY git://anongit.kde.org/smokeqt.git
   #GIT_BRANCH clang Qt5v2_PTZ191127
   SOURCE_DIR ${_src_d}
-  BUILD_BYPRODUCTS smokeqt qtcore_smoke.h  qthelp_smoke.h               qtnetwork_smoke.h      qtprintsupport_smoke.h  qtquickwidgets_smoke.h  qttest_smoke.h        qtwebenginecore_smoke.h     qtxml_smoke.h qtdbus_smoke.h  qtmultimedia_smoke.h         qtopengl_smoke.h       qtqml_smoke.h           qtscript_smoke.h        qtuitools_smoke.h     qtwebenginewidgets_smoke.h qtgui_smoke.h   qtmultimediawidgets_smoke.h  qtpositioning_smoke.h  qtquick_smoke.h         qtsql_smoke.h           qtwebchannel_smoke.h  qtwidgets_smoke.h
-  DEPENDS           ep_smokegenerator
+  BUILD_BYPRODUCTS smokeqt qtcore_smoke.h  qthelp_smoke.h
+    qtnetwork_smoke.h      qtprintsupport_smoke.h  qtquickwidgets_smoke.h
+    qttest_smoke.h        qtwebenginecore_smoke.h     qtxml_smoke.h qtdbus_smoke.h
+    qtmultimedia_smoke.h         qtopengl_smoke.h       qtqml_smoke.h
+    qtscript_smoke.h        qtuitools_smoke.h     qtwebenginewidgets_smoke.h
+    qtgui_smoke.h   qtmultimediawidgets_smoke.h  qtpositioning_smoke.h
+    qtquick_smoke.h         qtsql_smoke.h
+    qtwebchannel_smoke.h  qtwidgets_smoke.h
+  DEPENDS ep_smokegenerator
   )
 #needs /usr/local/include/smoke
 ExternalProject_Get_property(ep_smokeqt INSTALL_DIR)
@@ -74,36 +71,17 @@ message("build dir of ep_smokeqt = ${INSTALL_DIR}")
 #then include dir is temporaly...
 set(ep_smokeqt_INCLUDE_DIR  ${INSTALL_DIR}/include/smoke)
 list(PREPEND SMOKE_QTCORE_INCLUDE_DIR ${INSTALL_DIR}/include/smoke)
-list(APPEND SMOKE_QTCORE_INCLUDE_DIR /usr/include/smoke)
+list(APPEND  SMOKE_QTCORE_INCLUDE_DIR /usr/include/smoke)
 
-find_package(Smoke REQUIRED COMPONENTS QtCore)
-find_package(Smoke
-    COMPONENTS
-    QtDBus
-    QtGui
-    QtHelp
-    QtMultimedia
-    QtMultimediaWidgets
-    QtNetwork
-    QtPositioning
-    QtPrintSupport
-    QtOpenGL
-    QtQml
-    QtQuick
-    QtQuickWidgets
-    QtScript
-    QtSql
-    QtSvg
-    QtTest
-    QtUiTools
-    QtWebChannel
-    QtWebEngineCore
-    QtWebEngineWidgets
-    QtWidgets
-    QtXml
-    QtXmlPatterns
-    QUIET
-)
+foreach(_cmps ${_qt_comps_req} ${_qt_comps})
+  string(CONCAT _qt_cmps_i "Qt" ${_cmps})
+  list(APPEND _smokeqt_cmps ${_qt_cmps_i})
+endforeach()
+
+#TODO:PTZ200118 find system wide smoke-qt may be at higher priority ?
+#
+#find_package(Smoke REQUIRED COMPONENTS QtCore)
+find_package(Smoke COMPONENTS  ${_smokeqt_cmps} QUIET)
 
 include_directories(
     ${SMOKE_INCLUDE_DIR}
