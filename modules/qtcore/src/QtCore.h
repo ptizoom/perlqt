@@ -2,7 +2,7 @@
 #define QT_H
 
 #include "smokeperl.h"
-#include "smokehelp.h"
+#include "smoke_types_qt4.h"
 
 //#define Q_DECL_EXPORT __attribute__ ((visibility("default")))
 

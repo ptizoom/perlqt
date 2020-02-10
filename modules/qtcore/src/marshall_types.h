@@ -8,19 +8,20 @@
 
 #include "QtCore/QList"
 #include "QtCore/QObject"
-
+#if 0
 extern "C" {
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-#include "ppport.h"
+  //#include "ppport.h"
 }
-
-#include "marshall.h"
-#include "binding.h" // for definition of PerlQt4::Binding
+#endif
+#include "marshall_qt4.h"
+#include "binding_qt4.h" // for definition of PerlQt4::Binding
 #include "smokeperl.h" // for smokeperl_object
+#include "methodcall.h"
+#include "virtualmethodcall.h"
 
-void smokeStackToQtStack(Smoke::Stack stack, void ** o, int start, int end, QList<MocArgument*> args);
 void smokeStackFromQtStack(Smoke::Stack stack, void ** _o, int start, int end, QList<MocArgument*> args);
 
 namespace PerlQt {

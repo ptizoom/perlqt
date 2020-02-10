@@ -1,10 +1,11 @@
-#ifndef SMOKEPERL_H
-#define SMOKEPERL_H
-
+#pragma once
 #include "QtCore/QHash"
-#include "binding.h"
-#include "smoke.h"
-#include "smokehelp.h"
+#include "binding_qt4.h"
+//#include "smoke.h"
+#include "smoke_types_qt4.h"
+#include "smokeobject.h"
+
+struct smokeperl_object : public SmokePerl::Object {
 
 struct smokeperl_object {
     bool allocated;
@@ -72,4 +73,3 @@ struct MocArgument {
     MocArgumentType argType;
 };
 
-#endif //SMOKEPERL_H

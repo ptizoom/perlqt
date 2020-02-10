@@ -23,8 +23,8 @@
 #include <QtCore/qlinkedlist.h>
 #include <QtCore/qvector.h>
 
-#include "binding.h"
-#include "marshall.h"
+#include "binding_qt4.h"
+#include "marshall_qt4.h"
 #include "perlqtcore_util.h"
 
 #define DEF_HASH_MARSHALLER(HashIdent,Item) namespace { char HashIdent##STR[] = #Item; }  \

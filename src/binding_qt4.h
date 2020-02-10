@@ -1,7 +1,7 @@
-#ifndef BINDING_H
-#define BINDING_H
+#pragma once
 
-#include "smoke.h"
+//TODO:PTZ200104 obsoleted should use SmokePerlBinding instead
+#include "smokebinding.h"
 
 #ifndef Q_DECL_EXPORT
 #define Q_DECL_EXPORT
@@ -22,4 +22,3 @@ public:
 
 extern PerlQt::Binding binding;
 
-#endif // BINDING_H

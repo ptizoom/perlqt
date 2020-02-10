@@ -32,16 +32,19 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-#include "ppport.h"
+//#include "ppport.h"
 //} //END_EXTERN_C
 
 // Now my own headers
 #include "smoke.h"
 #include "QtCore.h"
-#include "binding.h"
+#include "smokebinding.h"
 #include "smokeperl.h"
 #include "marshall_types.h" // Method call classes
-#include "handlers.h" // for install_handlers function
+#include "handlers_qt4.h" // for install_handlers function
+
+//PTZ20200205 Smoke:: needed
+#include "marshall.h"
 
 Q_DECL_EXPORT COP* caller(I32 count);
 

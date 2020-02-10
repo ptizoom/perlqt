@@ -1,5 +1,4 @@
-#ifndef SMOKEHELP_H
-#define SMOKEHELP_H
+#pragma once
 
 /*
 This file contains utility classes that make interacting with smoke types and
@@ -8,7 +7,7 @@ smoke classes easier
 
 #include "QtCore/QByteArray" // for qstrcmp
 
-#include "smoke.h"
+#include "marshall.h"
 
 class SmokeType {
     // derived from _smoke and _id, but cached.  Index into types[] in smokedata.cpp
@@ -112,4 +111,4 @@ public:
     bool hasFire() const { return !(flags() & Smoke::cf_undefined); }
 };
 
-#endif //SMOKEHELP_H
+

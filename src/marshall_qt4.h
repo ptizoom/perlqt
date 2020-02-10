@@ -1,11 +1,15 @@
-#ifndef MARSHALL_H
-#define MARSHALL_H
-#include "smoke.h"
+#pragma once
 
+#include "marshall.h"
+
+using  Marshall = SmokePerl::Marshall;
+
+#if _oldqt4
 class SmokeType;
 
-class Marshall {
+class Marshall: public SmokePerl::Marshall {
 public:
+
     /**
      * FromSV is used for virtual function return values and regular
      * method arguments.
@@ -40,5 +44,5 @@ public:
     virtual bool cleanup() = 0;
 
     virtual ~Marshall() {}
-};    
-#endif // MARSHALL_H
+};
+#endif

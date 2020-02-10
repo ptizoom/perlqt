@@ -1,6 +1,8 @@
 #ifndef MARSHALL_PRIMITIVES_H
 #define MARSHALL_PRIMITIVES_H
 
+#include "handlers_qt4.h"
+
 template <>
 bool perl_to_primitive<bool>(SV* sv) {
     if ( !SvOK(sv) )

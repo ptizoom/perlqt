@@ -1,19 +1,11 @@
-#ifndef HANDLERS_H
-#define HANDLERS_H
-
+#pragma once
 
 class QString;
 class QByteArray;
 
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
+#include "marshall_qt4.h"
+#include "smoke_types_qt4.h"
 
-#include "marshall.h"
-#include "smokehelp.h"
 #include "smokeperl.h"
 
 struct TypeHandler {
@@ -51,4 +43,3 @@ Marshall::HandlerFn getMarshallFn(const SmokeType& type);
 
 #define UNTESTED_HANDLER(name) fprintf( stderr, "The handler %s has no test case.\n", name );
 
-#endif // HANDLERS_H

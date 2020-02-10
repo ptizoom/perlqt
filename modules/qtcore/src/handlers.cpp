@@ -85,14 +85,10 @@
 
 //==============================================================================
 #include "perlqtcore_util.h"
-
-#include "handlers.h"
-//#include "binding.h"
-//#include "QtCore.h"
+#include "handlers_qt4.h"
+#include "smoke_types_qt4.h"
 #include "marshall_basetypes.h"
 #include "marshall_macros.h"
-//#include "smokeperl.h"
-#include "smokehelp.h"
 
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 

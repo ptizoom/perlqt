@@ -5,13 +5,15 @@
 #include <QMetaMethod>
 #include <QPalette>
 
-#include "smoke.h"
-#include "marshall_types.h"
-#include "smokeperl.h" // for smokeperl_object
-#include "smokehelp.h" // for SmokeType and SmokeClass
-#include "handlers.h" // for getMarshallType
-#include "QtCore.h" // for extern sv_this
 #include "perlqtcore_util.h" // for caller()
+
+//#include "smoke.h"
+#include "marshall_types.h"
+//#include "smokeperl.h" // for smokeperl_object
+//PTZ200205#include "smokehelp_qt4.h" // for SmokeType and SmokeClass
+//#include "handlers.h" // for getMarshallType
+//#include "QtCore.h" // for extern sv_this
+
 
 extern Smoke* qtcore_Smoke;
 
