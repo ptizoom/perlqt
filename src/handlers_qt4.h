@@ -19,7 +19,7 @@ void invoke_dtor(smokeperl_object* o);
 
 // The magic virtual table that tells sv's to call smokeperl_free when they're
 // destroyed
-extern struct mgvtbl vtbl_smoke;
+//PTZ200207  extern struct mgvtbl vtbl_smoke; within ObjectMap::
 
 template <class T> void marshall_it(Marshall* m);
 
