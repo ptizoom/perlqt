@@ -94,11 +94,11 @@ extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 
 HV *type_handlers = 0;
 
-struct mgvtbl vtbl_smoke = { 0, 0, 0, 0, smokeperl_free };
+//PTZ200207 within ObjectMap:: struct mgvtbl vtbl_smoke = { 0, 0, 0, 0, smokeperl_free };
 
 int smokeperl_free(pTHX_ SV* /*sv*/, MAGIC* mg) {
     smokeperl_object* o = (smokeperl_object*)mg->mg_ptr;
-    if (o->allocated && o->ptr) {
+    if (o->allocated() && o->ptr()) {
         invoke_dtor( o );
 
         mg->mg_ptr = 0;
@@ -111,20 +111,21 @@ void invoke_dtor(smokeperl_object* o) {
     if ( methodId ) { // Cache lookup
     }
     else {
-        const char* className = o->smoke->classes[o->classId].className;
+      //PTZ200121 
+      const char* className = o->smoke()->classes[o->classId.index].className;
         char* methodName = new char[strlen(className) + 2];
         methodName[0] = '~';
         strcpy(methodName + 1, className);
-        Smoke::Index method = o->smoke->findMethod( className, methodName ).index;
+        Smoke::Index method = o->smoke()->findMethod( className, methodName ).index;
         if (method > 0) {
-            Smoke::Method& m = o->smoke->methods[o->smoke->methodMaps[method].method];
-            Smoke::ClassFn fn = o->smoke->classes[m.classId].classFn;
+            Smoke::Method& m = o->smoke()->methods[o->smoke()->methodMaps[method].method];
+            Smoke::ClassFn fn = o->smoke()->classes[m.classId].classFn;
             Smoke::StackItem i[1];
 #ifdef PERLQTDEBUG
             if( do_debug && (do_debug & qtdb_gc) )
-                fprintf( stderr, "Deleting (%s*)%p\n", o->smoke->classes[o->classId].className, o->ptr );
+	      fprintf( stderr, "Deleting (%s*)%p\n", o->smoke()->classes[o->classId.index].className, o->ptr() );
 #endif
-            (*fn)(m.method, o->ptr, i);
+            (*fn)(m.method, o->ptr(), i);
         }
         delete [] methodName;
     }
@@ -138,32 +139,36 @@ bool matches_arg(Smoke *smoke, Smoke::Index meth, Smoke::Index argidx, const cha
     return false;
 }
 
+//PTZ200205 is not sure to find the purpose of this function!
 void *construct_copy(smokeperl_object *o) {
+#if 0
+  ObjectMap::instance().insert(o, o->classId);
+#else  
     Smoke::Index *pccMeth = 0;//cctorcache->find(o->classId);
     Smoke::Index ccMeth = 0;
     if(!pccMeth) {
-        const char *className = o->smoke->className(o->classId);
+        const char *className = o->smoke()->className(o->classId.index);
         int classNameLen = strlen(className);
         char *ccSig = new char[classNameLen + 2];       // copy constructor signature
         strcpy(ccSig, className);
         strcat(ccSig, "#");
-        Smoke::ModuleIndex ccId = o->smoke->idMethodName(ccSig);
+        Smoke::ModuleIndex ccId = o->smoke()->idMethodName(ccSig);
         delete[] ccSig;
 
         char *ccArg = new char[classNameLen + 8];
         sprintf(ccArg, "const %s&", className);
 
-        Smoke::ModuleIndex classIdx( o->smoke, o->classId );
-        ccMeth = o->smoke->findMethod( classIdx, ccId ).index;
+        Smoke::ModuleIndex classIdx( o->smoke(), o->classId.index );
+        ccMeth = o->smoke()->findMethod( classIdx, ccId ).index;
 
         if(!ccMeth) {
             //cctorcache->insert(o->classId, new Smoke::Index(0));
             return 0;
         }
-        Smoke::Index method =  o->smoke->methodMaps[ccMeth].method;
+        Smoke::Index method =  o->smoke()->methodMaps[ccMeth].method;
         if(method > 0) {
             // Make sure it's a copy constructor
-            if(!matches_arg(o->smoke, method, 0, ccArg)) {
+            if(!matches_arg(o->smoke(), method, 0, ccArg)) {
                 delete[] ccArg;
                 //cctorcache->insert(o->classId, new Smoke::Index(0));
                 return 0;
@@ -173,13 +178,13 @@ void *construct_copy(smokeperl_object *o) {
         } else {
             // ambiguous method, pick the copy constructor
             Smoke::Index i = -method;
-            while(o->smoke->ambiguousMethodList[i]) {
-                if(matches_arg(o->smoke, o->smoke->ambiguousMethodList[i], 0, ccArg))
+            while(o->smoke()->ambiguousMethodList[i]) {
+                if(matches_arg(o->smoke(), o->smoke()->ambiguousMethodList[i], 0, ccArg))
                     break;
                 i++;
             }
             delete[] ccArg;
-            ccMeth = o->smoke->ambiguousMethodList[i];
+            ccMeth = o->smoke()->ambiguousMethodList[i];
             if(!ccMeth) {
                 //cctorcache->insert(o->classId, new Smoke::Index(0));
                 return 0;
@@ -194,22 +199,23 @@ void *construct_copy(smokeperl_object *o) {
     // Okay, ccMeth is the copy constructor. Time to call it.
     Smoke::StackItem args[2];
     args[0].s_voidp = 0;
-    args[1].s_voidp = o->ptr;
-    Smoke::ClassFn fn = o->smoke->classes[o->classId].classFn;
-    (*fn)(o->smoke->methods[ccMeth].method, 0, args);
+    args[1].s_voidp = o->ptr();
+    Smoke::ClassFn fn = o->smoke()->classes[o->classId.index].classFn;
+    (*fn)(o->smoke()->methods[ccMeth].method, 0, args);
     // Assign the new object's binding
-    args[1].s_voidp = perlqt_modules[o->smoke].binding;
+    args[1].s_voidp = perlqt_modules[o->smoke()].binding;
     (*fn)(0, args[0].s_voidp, args);
 
     if( do_debug && (do_debug & qtdb_gc) )
         fprintf( stderr, "Copied (%s*)%p to (%s*)%p\n",
-            o->smoke->classes[o->classId].className,
-            o->ptr,
-            o->smoke->classes[o->classId].className,
+            o->smoke()->classes[o->classId.index].className,
+		 o->ptr(),
+            o->smoke()->classes[o->classId.index].className,
             args[0].s_voidp
         );
 
     return args[0].s_voidp;
+#endif  
 }
 
 template <class T>
@@ -364,7 +370,7 @@ void marshall_basetype(Marshall* m) {
             switch( m->action() ) {
                 case Marshall::FromSV: {
                     smokeperl_object* o = sv_obj_info( m->var() );
-                    if( !o || !o->ptr ) {
+                    if( !o || !o->ptr() ) {
                         if( m->type().isRef() ) {
                             warn( "References can't be null or undef\n");
                             m->unsupported();
@@ -373,7 +379,7 @@ void marshall_basetype(Marshall* m) {
                         break;
                     }
 
-                    void* ptr = o->ptr;
+                    void* ptr = o->ptr();
 
                     if( !m->cleanup() && m->type().isStack()) {
                         ptr = construct_copy( o );
@@ -386,14 +392,14 @@ void marshall_basetype(Marshall* m) {
                     }
 
                     Smoke::ModuleIndex fromClass;
-                    fromClass.smoke = o->smoke;
-                    fromClass.index = o->classId;
+                    fromClass.smoke = o->smoke();
+                    fromClass.index = o->classId.index;
 
                     Smoke::ModuleIndex toClass;
                     toClass.smoke = m->smoke();
                     toClass.index = m->type().classId();
 
-                    ptr = o->smoke->cast(
+                    ptr = o->smoke()->cast(
                         ptr,
                         fromClass,
                         toClass
@@ -432,13 +438,13 @@ void marshall_basetype(Marshall* m) {
                         // valid.  This shouldn't be necessary, but it seems
                         // that some things bypass the Binding::deleted code.
                         smokeperl_object* o = sv_obj_info(var);
-                        if( o && o->ptr ) {
-                            if ( Smoke::isDerivedFrom( o->smoke, o->classId, returnMId.smoke, returnMId.index ) ) {
+                        if( o && o->ptr() ) {
+                            if ( Smoke::isDerivedFrom( o->smoke(), o->classId, returnMId.smoke, returnMId.index ) ) {
                                 SvSetMagicSV(m->var(), var);
                                 break;
                             }
                             else {
-                                unmapPointer( o, o->classId, 0 );
+                                unmapPointer( o, o->classId.index, 0 );
                             }
                         }
                     }
@@ -447,23 +453,41 @@ void marshall_basetype(Marshall* m) {
                     // We don't own this memory, so we don't want to delete it.
                     // The smokeperl_object contains all the info we need to
                     // know about this object
-                    smokeperl_object* o = alloc_smokeperl_object(
-                        false, returnMId.smoke, returnMId.index, cxxptr );
+                    smokeperl_object* o
+		      = alloc_smokeperl_object(false, returnMId, cxxptr );
 
                     // Try to create a copy (using the copy constructor) if
                     // it's a const ref
                     if( m->type().isConst() && m->type().isRef()) {
-	                    cxxptr = construct_copy( o );
-
-                        if(cxxptr) {
+		      
+#if _TODO_PTZ200121
+		      //TODO::PTZ200121 ohhh crap... find a constructor for  ojects?
+		      cxxptr = construct_copy( o );
+		      if(cxxptr) {
                             o->ptr = cxxptr;
                             // We made this copy, we do own this memory
                             o->allocated = true;
+			    //o->value = cxxptr;
                         }
+#else
+		      //PTZ200121 from void marshall_VoidPArray(Marshall* m)
+		      {
+			// void* cxxptr = m->item().s_voidp;
+			// SmokePerl::Object* o = new Object(
+			// 				  cxxptr,
+			// 				  SmokePerl::Smoke::NullModuleIndex,
+			// 				  SmokePerl::Object::CppOwnership
+			// 				  );
+			cxxptr = construct_copy(o);
+			SV* sv = o->wrap();			
+			SvSetMagicSV(m->var(), sv);
+		      }
+
+#endif
                     }
 
                     // Figure out what Perl name this should get
-                    const char* classname = perlqt_modules[o->smoke].resolve_classname(o);
+                    const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
 
                     // Bless a HV ref into that package name, and shove o into
                     // var
@@ -1136,13 +1160,13 @@ void marshall_QVectorQPairDoubleQColor(Marshall *m)  {
                 qpair->first = SvNV(*(av_fetch(pair, 0, 0)));
                 smokeperl_object* qcoloro = sv_obj_info(*(av_fetch(pair, 1, 0)));
 
-                if ( !qcoloro || !qcoloro->ptr )
+                if ( !qcoloro || !qcoloro->ptr() )
                     continue;
 
-                void* qcolorptr = qcoloro->smoke->cast(
-                    qcoloro->ptr,                // pointer
+                void* qcolorptr = qcoloro->smoke()->cast(
+                    qcoloro->ptr(),                // pointer
                     qcoloro->classId,                // from
-                    qcoloro->smoke->idClass("QColor").index            // to
+                    qcoloro->smoke()->idClass("QColor")//.index            // to
                 );
                 qpair->second = *(QColor*)qcolorptr;
                 cpplist->append(*qpair);
@@ -1173,10 +1197,12 @@ void marshall_QVectorQPairDoubleQColor(Marshall *m)  {
         }
         break;
 
-        case Marshall::ToSV: {
-            QVector <QPair<double,QColor> > *valuelist = (QVector <QPair<double,QColor> >*)m->item().s_voidp;
+        case Marshall::ToSV: {	    
+            QVector <QPair<double,QColor> > *valuelist
+	      = (QVector <QPair<double,QColor> >*)m->item().s_voidp;
             if(!valuelist) {
-                sv_setsv(m->var(), &PL_sv_undef);
+	      //_PTZ200121 sv_setsv(m->var(), &PL_sv_undef);
+		SvSetMagicSV(m->var(), &PL_sv_undef);
                 break;
             }
 
@@ -1186,55 +1212,98 @@ void marshall_QVectorQPairDoubleQColor(Marshall *m)  {
             //int ix = m->smoke()->idClass(ItemSTR).index;
             //const char * className = binding.className(ix);
 
+	    //PTZ200207 Smoke::ModuleIndex _mi = m->smoke()->findClass("QColor");
+
+	    
             for(int i=0; i < valuelist->size(); ++i) {
                 QPair<double,QColor> p = valuelist->at(i);
-
-                if(m->item().s_voidp == 0) {
-                    sv_setsv(m->var(), &PL_sv_undef);
-                    break;
-                }
+		// Get return value
+		//TODO_PTZ200121 or is this outside the for loop?
+		// is this by 
+                // if(m->item().s_voidp == 0) {
+                //     sv_setsv(m->var(), &PL_sv_undef);
+		//     //TODOPTZ200121 SvSetMagicSV(m->var(), &PL_sv_undef);
+                //     break;
+                // }
 
                 AV *pair = newAV();
                 SV *pairref = newRV_noinc((SV*)pair);
 
                 av_push( pair, newSVnv( p.first ) );
 
-                SV *obj = getPointerObject((void*)&p.second);
-                if( !obj || !SvOK(obj) ) {
-                    Smoke::ModuleIndex mi = m->smoke()->findClass("QColor");
-                    smokeperl_object *o = alloc_smokeperl_object(
-                        false, mi.smoke, mi.index, (void*)&p.second );
-                    if( !m->cleanup() && m->type().isStack()) {
+		//_TODO_PTZ200121 obj bad name, o_sv maybe
+		SV *obj = getPointerObject((void*)&p.second);
+ 		
+                if (!obj || !SvOK(obj)) {
+#if 1 || _TODO_PTZ200121
+		  Smoke::ModuleIndex _mi = m->smoke()->findClass("QColor");
+		  smokeperl_object *o
+		    = alloc_smokeperl_object
+		    (
+		     m->type().isStack()
+		     , _mi
+		     , (void*)&p.second
+		     );
+#if 0 //done by ObjectMap::instance().insert(o, o->classId); in set_obj_info now handled! ?!
+                    // if (!m->cleanup() && m->type().isStack()) {		      
+                    //     void *ptr = construct_copy( o );
+                    //     if (ptr && ptr != o->ptr()) {
+		    // 	  //#warn // PTZ200211 o->ptr = ptr; set to itself?!
+                    //         //o->allocated = true;
+		    // 	   m->unsupported();
+                    //     }
+		    // }
+#endif
+                    //const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
+		    //const char* classname = Smoke::findClass(o->smoke()->classes[o->type().classId()].className);
+		    //const char* classname = Smoke::findClass(o->smoke()->classes[o->smoke()->type().classId()].className);
 
-                        void *ptr = construct_copy( o );
-                        if(ptr) {
-                            o->ptr = ptr;
-                            o->allocated = true;
-                        }
-                    }
+		  //_TODO_PTZ200121  class_name = SmokePerl::SmokeManager::instance().getBindingForSmoke(o->classId.smoke)->className(o->classId.index) or Qt::Qcolor?
+		    obj = set_obj_info(nullptr, o);		    
+                    SvSetMagicSV(m->var(), obj); //_TODO_PTZ200121 not sure here
 
-                    const char* classname = perlqt_modules[o->smoke].resolve_classname(o);
+		    //#else
+		    // //SmokePerl::Object* obj = SmokePerl::ObjectMap::instance().get(cxxptr);
+                    // // if (obj != nullptr) {
+                    // //     SvSetMagicSV(m->var(), obj->sv);
+                    // //     return;
+                    // // }
 
-                    obj = set_obj_info( classname, o );
-                }
+		    // smokeperl_object *o = new SmokePerl::Object
+		    //   (
+		    //    //cxxptr,
+                    //    // Smoke::findClass(m->smoke()->classes[m->type().classId()].className),
+		    //    , m->type().isStack()
+		    //    ?  SmokePerl::Object::ScriptOwnership
+		    //    :  SmokePerl::Object::CppOwnership
+                    // );
 
-                av_push( pair, obj );
+                    // SV* sv = o->wrap();
+                    // ObjectMap::instance().insert(o, o->classId);
 
-                av_push(av, pairref);
-            }
-
-            sv_setsv(m->var(), avref);
-            m->next();
-
-            if (m->cleanup()) {
-                delete valuelist;
-            }
-        }
-        break;
-
-        default:
-            m->unsupported();
-        break;
+                    // SmokePerl::SmokePerlBinding* binding = SmokePerl::SmokeManager::instance().getBindingForSmoke(obj->classId.smoke);
+                    // const char* pkg = binding->className(obj->classId.index);
+                    // sv_bless(sv, gv_stashpv(pkg, TRUE));
+                    // SvSetMagicSV(m->var(), sv);
+#endif
+		    
+		}		
+		av_push( pair, obj );
+		av_push(av, pairref);
+	    }
+	    
+	    sv_setsv(m->var(), avref);
+	    m->next();
+	    
+	    if (m->cleanup()) {
+	      delete valuelist;
+	    }
+	}
+	  break;
+	  
+    default:
+      m->unsupported();
+      break;
     }
 }
 
@@ -1485,7 +1554,7 @@ void marshall_QMapQStringQUrl(Marshall *m) {
             I32* keylen = new I32;
             while( ( value = hv_iternextsv( hash, &key, keylen ) ) ) {
                 smokeperl_object *o = sv_obj_info(value);
-                if (!o || !o->ptr || o->classId != o->smoke->findClass("QVariant").index) {
+                if (!o || !o->ptr() || o->classId != o->smoke()->findClass("QVariant")) {
                     continue;
                     // If the value isn't a Qt::Variant, then try and construct
                     // a Qt::Variant from it
@@ -1499,7 +1568,7 @@ void marshall_QMapQStringQUrl(Marshall *m) {
                     */
                 }
 
-                (*map)[QString(key)] = (QUrl)*(QUrl*)o->ptr;
+                (*map)[QString(key)] = (QUrl)*(QUrl*)o->ptr();
             }
             delete keylen;
 
@@ -1529,8 +1598,7 @@ void marshall_QMapQStringQUrl(Marshall *m) {
                     Smoke::ModuleIndex returnMId = Smoke::classMap["QUrl"];
                     smokeperl_object * o = alloc_smokeperl_object(
                         true, 
-                        returnMId.smoke,
-                        returnMId.index,
+                        returnMId,
                         p );
                     obj = set_obj_info(" Qt::Url", o);
                 }
@@ -1570,7 +1638,7 @@ void marshall_QMapQStringQVariant(Marshall *m) {
             I32* keylen = new I32;
             while( ( value = hv_iternextsv( hash, &key, keylen ) ) ) {
                 smokeperl_object *o = sv_obj_info(value);
-                if (!o || !o->ptr || o->classId != o->smoke->findClass("QVariant").index) {
+                if (!o || !o->ptr() || o->classId != o->smoke()->findClass("QVariant")) {
                     continue;
                     // If the value isn't a Qt::Variant, then try and construct
                     // a Qt::Variant from it
@@ -1584,7 +1652,7 @@ void marshall_QMapQStringQVariant(Marshall *m) {
                     */
                 }
 
-                (*map)[QString(key)] = (QVariant)*(QVariant*)o->ptr;
+                (*map)[QString(key)] = (QVariant)*(QVariant*)o->ptr();
             }
             delete keylen;
 
@@ -1611,10 +1679,11 @@ void marshall_QMapQStringQVariant(Marshall *m) {
                 SV *obj = getPointerObject(p);
 
                 if ( !obj || !SvOK(obj) ) {
-                    smokeperl_object  * o = alloc_smokeperl_object(	true, 
-                                                                    m->smoke(), 
-                                                                    m->smoke()->idClass("QVariant").index, 
-                                                                    p );
+                    smokeperl_object  * o
+		      = alloc_smokeperl_object(	true
+						, m->smoke()->idClass("QVariant")
+						, p
+						);
                     obj = set_obj_info(" Qt::Variant", o);
                 }
 
@@ -1654,7 +1723,7 @@ void marshall_QMapIntQVariant(Marshall *m) {
             I32* keylen = new I32;
             while( ( value = hv_iternextsv( hash, &key, keylen ) ) ) {
                 smokeperl_object *o = sv_obj_info(value);
-                if (!o || !o->ptr || o->classId != o->smoke->findClass("QVariant").index) {
+                if (!o || !o->ptr() || o->classId != o->smoke()->findClass("QVariant")) {
                     continue;
                     /*
                     // If the value isn't a Qt::Variant, then try and construct
@@ -1673,7 +1742,7 @@ void marshall_QMapIntQVariant(Marshall *m) {
                     fprintf( stderr, "Error in marshall_QMapIntQVariant while converting key to integer type\n" );
                 }
 
-                (*map)[intkey] = (QVariant)*(QVariant*)o->ptr;
+                (*map)[intkey] = (QVariant)*(QVariant*)o->ptr();
             }
             delete keylen;
 
@@ -1700,10 +1769,12 @@ void marshall_QMapIntQVariant(Marshall *m) {
                 SV *obj = getPointerObject(p);
 
                 if ( !obj || !SvOK(obj) ) {
-                    smokeperl_object * o = alloc_smokeperl_object( true, 
-                        m->smoke(), 
-                        m->smoke()->idClass("QVariant").index, 
-                        p );
+                    smokeperl_object * o
+		      = alloc_smokeperl_object(
+					       true
+					       , m->smoke()->idClass("QVariant")
+					       , p
+					       );
                     obj = set_obj_info("Qt::Variant", o);
                 }
 
@@ -1844,7 +1915,7 @@ Q_DECL_EXPORT void marshall_QHashQStringQVariant(Marshall *m) {
             I32* keylen = new I32;
             while( ( value = hv_iternextsv( hash, &key, keylen ) ) ) {
                 smokeperl_object *o = sv_obj_info(value);
-                if (!o || !o->ptr || o->classId != o->smoke->findClass("QVariant").index) {
+                if (!o || !o->ptr() || o->classId != o->smoke()->findClass("QVariant")) {
                     continue;
                     // If the value isn't a Qt::Variant, then try and construct
                     // a Qt::Variant from it
@@ -1858,7 +1929,7 @@ Q_DECL_EXPORT void marshall_QHashQStringQVariant(Marshall *m) {
                     */
                 }
 
-                (*chash)[QString(key)] = (QVariant)*(QVariant*)o->ptr;
+                (*chash)[QString(key)] = (QVariant)*(QVariant*)o->ptr();
             }
             delete keylen;
 
@@ -1887,9 +1958,8 @@ Q_DECL_EXPORT void marshall_QHashQStringQVariant(Marshall *m) {
                 if ( !obj || !SvOK(obj) ) {
                     // We know what module QVariant is defined in.  Hard-code
                     // that smoke object
-                    smokeperl_object  * o = alloc_smokeperl_object(	true, 
-                                                                    qtcore_Smoke,
-                                                                    qtcore_Smoke->idClass("QVariant").index, 
+                    smokeperl_object  * o = alloc_smokeperl_object(	true,
+                                                                    qtcore_Smoke->idClass("QVariant"), 
                                                                     p );
                     obj = set_obj_info(" Qt::Variant", o);
                 }
@@ -2057,7 +2127,7 @@ void marshall_QPairqrealQColor(Marshall *m) {
             }
             else {
                 o = sv_obj_info(*item2);
-                if (o == 0 || o->ptr == 0) {
+                if (o == 0 || o->ptr() == 0) {
                     m->item().s_voidp = 0;
                     break;
                 }
@@ -2065,7 +2135,7 @@ void marshall_QPairqrealQColor(Marshall *m) {
 
             // This should check to make sure o->ptr can be a QColor
 
-            QPair<qreal,QColor> * qpair = new QPair<qreal,QColor>(real, *((QColor *) o->ptr));
+            QPair<qreal,QColor> * qpair = new QPair<qreal,QColor>(real, *((QColor *) o->ptr()));
             m->item().s_voidp = qpair;
             m->next();
 
@@ -2086,9 +2156,8 @@ void marshall_QPairqrealQColor(Marshall *m) {
             void *p = (void *) &(qpair->second);
             SV *rv2 = getPointerObject(p);
             if ( !SvOK( rv2 ) ) {
-                smokeperl_object * o = alloc_smokeperl_object( true, 
-                    m->smoke(), 
-                    m->smoke()->idClass("QColor").index, 
+                smokeperl_object * o = alloc_smokeperl_object( true,
+                    m->smoke()->idClass("QColor"), 
                     p );
                 rv2 = set_obj_info("Qt::Color", o);
             }
@@ -2175,8 +2244,7 @@ void marshall_voidP_array(Marshall *m) {
 
             smokeperl_object* o = alloc_smokeperl_object(
                 false,
-                m->smoke(),
-                0,
+                Smoke::NullModuleIndex,
                 cxxptr );
             SV *var = sv_2mortal( set_obj_info( "voidparray", o ) );
 

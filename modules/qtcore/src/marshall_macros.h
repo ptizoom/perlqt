@@ -61,15 +61,21 @@ void marshall_ItemList(Marshall *m) {
                 if(!item || !SvOK(*item))
                     continue;
                 smokeperl_object *o = sv_obj_info(*item);
-                if(!o || !o->ptr)
+                if(!o || !o->ptr())
                     continue;
+
+
+#if 0 || qt4_PTZ200120 //PTZ200121
                 void *ptr = o->ptr;
-                ptr = o->smoke->cast(
+                ptr = o->smoke()->cast(
                     ptr,                // pointer
                     o->classId,                // from
-                    o->smoke->idClass(ItemSTR).index    // to
+                    o->smoke()->idClass(ItemSTR).index    // to
                 );
-                cpplist->append((Item*)ptr);
+		cpplist->append((Item*)ptr);
+#else
+		cpplist->append((Item*)o->cast(ItemSTR));
+#endif
             }
 
             m->item().s_voidp = cpplist;
@@ -116,7 +122,7 @@ void marshall_ItemList(Marshall *m) {
                 SV* obj = getPointerObject(p);
                 if (!obj || !SvOK(obj) ) {
                     smokeperl_object *o = alloc_smokeperl_object(
-                        false, mi.smoke, mi.index, p );
+                        false, mi, p );
 
                     const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
 
@@ -152,9 +158,11 @@ void marshall_ItemList(Marshall *m) {
                     SV* item = *itemref;
                     // TODO do type checking!
                     smokeperl_object *o = sv_obj_info(item);
-                    if(!o || !o->ptr)
+                    if(!o || !o->ptr())
                         continue;
-                    void *ptr = o->ptr;
+
+#if 0 || qt4_PTZ200120 //PTZ200121
+		    void *ptr = o->ptr;
                     ptr = o->smoke->cast(
                             ptr,				// pointer
                             o->classId,				// from
@@ -162,6 +170,12 @@ void marshall_ItemList(Marshall *m) {
                             );
 
                     cpplist->append((Item*)ptr);
+#else
+		cpplist->append((Item*)o->cast(ItemSTR));
+		//TODO::PTZ200121 what about this "true" business?
+#endif
+
+
                 }
             }
 
@@ -198,7 +212,11 @@ void marshall_ValueListItem(Marshall *m) {
 
                 // Special case for the QList<QVariant> type
                 if (    qstrcmp(ItemSTR, "QVariant") == 0 &&
-                        (!o || !o->ptr || o->classId != o->smoke->idClass("QVariant").index) ) 
+                        (!o
+			 || !o->ptr()
+			 //PTZ200121
+			 || o->classId.index != o->smoke()->idClass("QVariant").index)
+			) 
                 {
                     UNTESTED_HANDLER( "marshall_ValueListItem for QVariant" );
                     // If the value isn't a Qt::Variant, then try and construct
@@ -213,8 +231,9 @@ void marshall_ValueListItem(Marshall *m) {
                     */
                 }
 
-                if (!o || !o->ptr)
+                if (!o || !o->ptr())
                     continue;
+#if 0 || qt4_PTZ200120 //PTZ200121
 
                 void *ptr = o->ptr;
                 ptr = o->smoke->cast(
@@ -223,6 +242,10 @@ void marshall_ValueListItem(Marshall *m) {
                         o->smoke->idClass(ItemSTR).index            // to
                         );
                 cpplist->append(*(Item*)ptr);
+#else
+		cpplist->append(*(Item*)o->cast(ItemSTR));
+#endif
+
             }
 
             m->item().s_voidp = cpplist;
@@ -268,10 +291,8 @@ void marshall_ValueListItem(Marshall *m) {
 
                 SV *obj = getPointerObject(p);
                 if( !obj || !SvOK(obj) ) {
-                    smokeperl_object *o = alloc_smokeperl_object(
-                        false, mi.smoke, mi.index, p );
-
-                    obj = set_obj_info( className, o );
+                    smokeperl_object *o = alloc_smokeperl_object(false, mi, p);
+                    obj = set_obj_info(className.c_str(), o);
                 }
                 else {
                     // See above.

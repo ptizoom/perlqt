@@ -173,7 +173,7 @@ getNativeMetaObject( smokeId, methodId )
         int smokeId
         int methodId
     CODE:
-        smokeperl_object* nothis = alloc_smokeperl_object( false, 0, 0, 0 );
+        smokeperl_object* nothis = alloc_smokeperl_object(false, Smoke::NullModuleIndex, nullptr);
         Smoke* smoke = smokeList[smokeId];
         PerlQt::MethodCall call(
             smoke,
@@ -298,7 +298,7 @@ make_metaObject(parentModuleId,parentMeta,stringdata_sv,data_sv)
         if( SvROK(parentMeta) ){
             // The parent class is a custom Perl class whose metaObject
             // was constructed at runtime
-            superdata = (QMetaObject*)sv_obj_info(parentMeta)->ptr;
+            superdata = (QMetaObject*)sv_obj_info(parentMeta)->ptr();
         }
         else {
             // The parent class is a Smoke class, so call metaObject() on the
@@ -352,18 +352,21 @@ make_metaObject(parentModuleId,parentMeta,stringdata_sv,data_sv)
         *meta = staticMetaObject;
 
         //Package up this pointer to be returned to perl
-        smokeperl_object o;
-        o.smoke = qtcore_Smoke;
-        o.classId = qtcore_Smoke->idClass("QMetaObject").index,
-        o.ptr = meta;
-        o.allocated = true;
+        //TODO::PTZ200210 
+        //smokeperl_object o(&meta, qtcore_Smoke->idClass("QMetaObject"), SmokePerl::Object::CppOwnership);
+        smokeperl_object* o = alloc_smokeperl_object(false, qtcore_Smoke->idClass("QMetaObject"), meta);
+
+        /* o.smoke = qtcore_Smoke; */
+        /* o.classId = qtcore_Smoke->idClass("QMetaObject").index, */
+        /* o.ptr = meta; */
+        /* o.allocated = true; */
 
         HV *hv = newHV();
         RETVAL = newRV_noinc((SV*)hv);
         sv_bless( RETVAL, gv_stashpv( " Qt::MetaObject", TRUE ) );
-        sv_magic((SV*)hv, 0, '~', (char*)&o, sizeof(o));
+        sv_magic((SV*)hv, 0, '~', (const char * const)o, sizeof(*o));
         //Not sure we need the entry in the pointer_map
-        mapPointer(RETVAL, &o, pointer_map, o.classId, 0);
+        mapPointer(RETVAL, o, pointer_map, o->classId.index, 0);
     OUTPUT:
         RETVAL
 
@@ -403,12 +406,12 @@ sv_obj_info(sv)
         SV* sv
     PPCODE:
         smokeperl_object* o = sv_obj_info(sv);
-        if( !o || !o->ptr )
+        if( !o || !o->ptr() )
             XSRETURN_UNDEF;
-        XPUSHs(sv_2mortal(newSViv(o->allocated ? 1 : 0)));
-        XPUSHs(sv_2mortal(newSVpv(o->smoke->classes[o->classId].className, strlen(o->smoke->classes[o->classId].className))));
-        XPUSHs(sv_2mortal(newSVpv(o->smoke->moduleName(), strlen(o->smoke->moduleName()))));
-        XPUSHs(sv_2mortal(newSVpvf("0x%x", (IV)o->ptr)));
+        XPUSHs(sv_2mortal(newSViv(o->allocated() ? 1 : 0)));
+        XPUSHs(sv_2mortal(newSVpv(o->smoke()->classes[o->classId.index].className, strlen(o->smoke()->classes[o->classId.index].className))));
+        XPUSHs(sv_2mortal(newSVpv(o->smoke()->moduleName(), strlen(o->smoke()->moduleName()))));
+        XPUSHs(sv_2mortal(newSVpvf("0x%x", (IV)o->ptr())));
 
 void
 setIsArrayType(typeName)

@@ -17,9 +17,9 @@ void XS_Vector_at( pTHX_ CV* cv)
         int	index = (int)SvIV(ST(1));
         SV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
         if ( 0 > index || index > vector->size() - 1 )
             XSRETURN_UNDEF;
 
@@ -71,9 +71,9 @@ void XS_ValueVector_at( pTHX_ CV* cv)
         int	index = (int)SvIV(ST(1));
         SV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
         if ( 0 > index || index > vector->size() - 1 )
             XSRETURN_UNDEF;
 
@@ -107,9 +107,9 @@ void XS_ValueVector_exists( pTHX_ CV* cv)
         int	index = (int)SvIV(ST(1));
         bool	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
         if ( 0 > index || index > vector->size() - 1 )
             RETVAL = false;
         else
@@ -132,9 +132,9 @@ void XS_ValueVector_size( pTHX_ CV* cv)
         int	RETVAL;
         dXSTARG;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
         RETVAL = vector->size();
         XSprePUSH; PUSHi((IV)RETVAL);
     }
@@ -154,13 +154,13 @@ void XS_ValueVector_store( pTHX_ CV* cv)
         SV*	value = ST(2);
         SV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
         smokeperl_object* valueo = sv_obj_info(value);
-        if (!valueo || !valueo->ptr)
+        if (!valueo || !valueo->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
-        Item* point = (Item*)valueo->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
+        Item* point = (Item*)valueo->ptr();
 
         if ( 0 > index )
             XSRETURN_UNDEF;
@@ -195,9 +195,9 @@ void XS_ValueVector_storesize( pTHX_ CV* cv)
         int	count = (int)SvIV(ST(1));
         AV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         vector->resize( count );
         PUTBACK;
@@ -219,9 +219,9 @@ void XS_ValueList_storesize( pTHX_ CV* cv)
         int	count = (int)SvIV(ST(1));
         AV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr || count < 0)
+        if (!o || !o->ptr() || count < 0)
             XSRETURN_UNDEF;
-        ItemList* vector = (ItemList*)o->ptr;
+        ItemList* vector = (ItemList*)o->ptr();
 
         while ( count > vector->size() )
             vector->append( Item() );
@@ -246,9 +246,9 @@ void XS_ValueVector_delete( pTHX_ CV* cv)
         int	index = (int)SvIV(ST(1));
         SV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         Smoke::StackItem retval[1];
         // Must copy, because the replace() below will delete the return value
@@ -270,11 +270,13 @@ void XS_ValueVector_delete( pTHX_ CV* cv)
         if ( SvTYPE(SvRV(RETVAL)) == SVt_PVAV ) {
             for( int i=0; i < av_len((AV*)SvRV(RETVAL))+1; ++i ) {
                 SV* val = *(av_fetch((AV*)SvRV(RETVAL), i, 0));
-                sv_obj_info(val)->allocated = true;
+                //PTZ200121 nop...another methode is used...
+		//to set validCppObject
+		//sv_obj_info(val)->allocated = true;
             }
         }
         else {
-            sv_obj_info(RETVAL)->allocated = true;
+	  //sv_obj_info(RETVAL)->allocated = true;
         }
 
         ST(0) = RETVAL;
@@ -294,9 +296,9 @@ void XS_ValueVector_clear( pTHX_ CV* cv)
     {
         SV*	array = ST(0);
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         vector->clear();
     }
@@ -315,9 +317,9 @@ void XS_Vector_push( pTHX_ CV* cv)
         int	RETVAL;
         dXSTARG;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemList* list = (ItemList*)o->ptr;
+        ItemList* list = (ItemList*)o->ptr();
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -351,9 +353,9 @@ void XS_ValueVector_push( pTHX_ CV* cv)
         int	RETVAL;
         dXSTARG;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -387,9 +389,9 @@ void XS_ValueVector_pop( pTHX_ CV* cv)
         SV*	array = ST(0);
         SV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
         if ( vector->isEmpty() )
             XSRETURN_UNDEF;
 
@@ -426,9 +428,9 @@ void XS_Vector_shift( pTHX_ CV* cv)
         SV*	array = ST(0);
         SV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         if ( vector->size() == 0 )
             XSRETURN_UNDEF;
@@ -463,9 +465,9 @@ void XS_ValueVector_shift( pTHX_ CV* cv)
         SV*	array = ST(0);
         SV *	RETVAL;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         if ( vector->size() == 0 )
             XSRETURN_UNDEF;
@@ -488,11 +490,11 @@ void XS_ValueVector_shift( pTHX_ CV* cv)
         if ( SvTYPE(SvRV(RETVAL)) == SVt_PVAV ) {
             for( int i=0; i < av_len((AV*)SvRV(RETVAL))+1; ++i ) {
                 SV* val = *(av_fetch((AV*)SvRV(RETVAL), i, 0));
-                sv_obj_info(val)->allocated = true;
+		//PTZ200210  sv_obj_info(val)->allocated = true;
             }
         }
         else {
-            sv_obj_info(RETVAL)->allocated = true;
+           	//PTZ200210  sv_obj_info(RETVAL)->allocated = true;
         }
         ST(0) = RETVAL;
         sv_2mortal(ST(0));
@@ -512,9 +514,9 @@ void XS_Vector_unshift( pTHX_ CV* cv)
         int	RETVAL;
         dXSTARG;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -548,9 +550,9 @@ void XS_ValueVector_unshift( pTHX_ CV* cv)
         int	RETVAL;
         dXSTARG;
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -597,9 +599,9 @@ void XS_ValueVector_splice( pTHX_ CV* cv)
             length = (int)SvIV(ST(2));
         }
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemVector* vector = (ItemVector*)o->ptr;
+        ItemVector* vector = (ItemVector*)o->ptr();
 
         if ( firstIndex > vector->size() )
             firstIndex = vector->size();
@@ -636,11 +638,11 @@ void XS_ValueVector_splice( pTHX_ CV* cv)
             if ( SvTYPE(SvRV(ST(j))) == SVt_PVAV ) {
                 for( int k=0; k < av_len((AV*)SvRV(ST(j)))+1; ++k ) {
                     SV* val = *(av_fetch((AV*)SvRV(ST(j)), k, 0));
-                    sv_obj_info(val)->allocated = true;
+                    //PTZ200210  sv_obj_info(val)->allocated = true;
                 }
             }
             else {
-                sv_obj_info(ST(j))->allocated = true;
+                //PTZ200210  sv_obj_info(ST(j))->allocated = true;
             }
             vector->remove(firstIndex);
         }
@@ -680,9 +682,9 @@ void XS_List_splice( pTHX_ CV* cv)
             length = (int)SvIV(ST(2));
         }
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemList* list = (ItemList*)o->ptr;
+        ItemList* list = (ItemList*)o->ptr();
 
         if ( firstIndex > list->size() )
             firstIndex = list->size();
@@ -752,9 +754,9 @@ void XS_ValueList_splice( pTHX_ CV* cv)
             length = (int)SvIV(ST(2));
         }
         smokeperl_object* o = sv_obj_info(array);
-        if (!o || !o->ptr)
+        if (!o || !o->ptr())
             XSRETURN_UNDEF;
-        ItemList* list = (ItemList*)o->ptr;
+        ItemList* list = (ItemList*)o->ptr();
 
         if ( firstIndex > list->size() )
             firstIndex = list->size();
@@ -812,14 +814,14 @@ void XS_ValueVector__overload_op_equality( pTHX_ CV* cv)
         SV*	second = ST(1);
         bool	RETVAL;
         smokeperl_object* o1 = sv_obj_info(first);
-        if (!o1 || !o1->ptr)
+        if (!o1 || !o1->ptr())
             XSRETURN_UNDEF;
-        ItemVector* list1 = (ItemVector*)o1->ptr;
+        ItemVector* list1 = (ItemVector*)o1->ptr();
 
         smokeperl_object* o2 = sv_obj_info(second);
-        if (!o2 || !o2->ptr || isDerivedFrom(o2, ItemVectorSTR) == -1)
+        if (!o2 || !o2->ptr() || isDerivedFrom(o2, ItemVectorSTR) == -1)
             XSRETURN_UNDEF;
-        ItemVector* list2 = (ItemVector*)o2->ptr;
+        ItemVector* list2 = (ItemVector*)o2->ptr();
 
         RETVAL = *list1 == *list2;
         ST(0) = boolSV(RETVAL);

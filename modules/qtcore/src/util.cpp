@@ -118,12 +118,19 @@ Q_DECL_EXPORT COP* caller(I32 count)
 }
 
 Q_DECL_EXPORT smokeperl_object * 
-alloc_smokeperl_object(bool allocated, Smoke * smoke, int classId, void * ptr) {
-    smokeperl_object * o = new smokeperl_object;
-    o->classId = classId;
-    o->smoke = smoke;
-    o->ptr = ptr;
-    o->allocated = allocated;
+alloc_smokeperl_object(bool ownership_b
+		       , const Smoke::ModuleIndex& classId
+		       , void * ptr
+		       )
+{
+  smokeperl_object * o = new smokeperl_object
+    (
+     ptr
+     , classId
+     , ownership_b
+     ? SmokePerl::Object::ScriptOwnership
+     : SmokePerl::Object::CppOwnership
+     );
     return o;
 }
 
@@ -144,7 +151,7 @@ void catRV( SV *r, SV *sv ) {
     smokeperl_object *o = sv_obj_info(sv);
     if(o)
         // Got a cxx type.
-        sv_catpvf(r, "(%s*)0x%p",o->smoke->className(o->classId), o->ptr);
+      sv_catpvf(r, "(%s*)0x%p",o->smoke()->className(o->classId.index), o->ptr());
     else if (SvTYPE(SvRV(sv)) == SVt_PVMG)
         // Got a blessed hash
         sv_catpvf(r, "%s(%s)", HvNAME(SvSTASH(SvRV(sv))), SvPV_nolen(SvRV(sv)));
@@ -249,7 +256,7 @@ const char* get_SVt(SV* sv) {
             }
         }
         else
-            r = o->smoke->classes[o->classId].className;
+	  r = o->smoke()->classes[o->classId.index].className;
     }
     else
         r = "U";
@@ -446,9 +453,9 @@ int isDerivedFrom(Smoke *smoke, const char *className, const char *baseClassName
 }
 
 Q_DECL_EXPORT int isDerivedFrom( smokeperl_object *o, const char *baseClassName ) {
-    Smoke::Index idClass = o->classId;
-    Smoke::Index idBase = o->smoke->idClass(baseClassName).index;
-    return isDerivedFrom(o->smoke, idClass, idBase, 0);
+    Smoke::Index idClass = o->classId.index;  //PTZ200220 to qt5
+    Smoke::Index idBase = o->smoke()->idClass(baseClassName).index;
+    return isDerivedFrom(o->smoke(), idClass, idBase, 0);
 }
 
 // Enter keys: integer memory address of a cxxptr, values: associated perl sv
@@ -456,7 +463,7 @@ Q_DECL_EXPORT int isDerivedFrom( smokeperl_object *o, const char *baseClassName 
 // Recurse to store it also as casted to its parent classes, which could (and
 // does) have different memory addresses
 Q_DECL_EXPORT void mapPointer(SV *obj, smokeperl_object *o, HV *hv, Smoke::Index classId, void *lastptr) {
-    void *ptr = o->smoke->cast(o->ptr, o->classId, classId);
+  void *ptr = o->smoke()->cast(o->ptr(), o->classId.index, classId);
     // This ends the recursion
     if(ptr != lastptr) {
         lastptr = ptr;
@@ -468,7 +475,7 @@ Q_DECL_EXPORT void mapPointer(SV *obj, smokeperl_object *o, HV *hv, Smoke::Index
         hv_store(hv, key, len, rv, 0);
         SvREFCNT_dec(keysv);
     }
-    for(Smoke::Index *i = o->smoke->inheritanceList + o->smoke->classes[classId].parents; *i; i++) {
+    for(Smoke::Index *i = o->smoke()->inheritanceList + o->smoke()->classes[classId].parents; *i; i++) {
         mapPointer(obj, o, hv, *i, lastptr);
     }
 }
@@ -533,64 +540,66 @@ SV* prettyPrintMethod(Smoke::ModuleIndex id) {
 }
 #endif
 
+//TODO:PTZ200203 qt5 ttransforme is not good here
+#if 0
 const char* resolve_classname_qt( smokeperl_object* o ) {
-    if (o->smoke->isDerivedFrom(o->smoke->classes[o->classId].className, "QEvent")) {
-        QEvent * qevent = (QEvent *) o->smoke->cast(o->ptr, o->classId, o->smoke->idClass("QEvent").index);
+    if (o->smoke()->isDerivedFrom(o->smoke()->classes[o->classId.index].className, "QEvent")) {
+      QEvent * qevent = (QEvent *) o->smoke()->cast(o->ptr(), o->classId, o->smoke()->idClass("QEvent").index);
         switch (qevent->type()) {
             case QEvent::Timer:
                 o->smoke = Smoke::classMap["QTimerEvent"].smoke;
-                o->classId = o->smoke->idClass("QTimerEvent").index;
+                o->classId = o->smoke()->idClass("QTimerEvent").index;
                 break;
             case QEvent::MouseButtonPress:
             case QEvent::MouseButtonRelease:
             case QEvent::MouseButtonDblClick:
             case QEvent::MouseMove:
                 o->smoke = Smoke::classMap["QMouseEvent"].smoke;
-                o->classId = o->smoke->idClass("QMouseEvent").index;
+                o->classId = o->smoke()->idClass("QMouseEvent").index;
                 break;
             case QEvent::KeyPress:
             case QEvent::KeyRelease:
             case QEvent::ShortcutOverride:
                 o->smoke = Smoke::classMap["QKeyEvent"].smoke;
-                o->classId = o->smoke->idClass("QKeyEvent").index;
+                o->classId = o->smoke()->idClass("QKeyEvent").index;
                 break;
             case QEvent::FocusIn:
             case QEvent::FocusOut:
                 o->smoke = Smoke::classMap["QFocusEvent"].smoke;
-                o->classId = o->smoke->idClass("QFocusEvent").index;
+                o->classId = o->smoke()->idClass("QFocusEvent").index;
                 break;
             case QEvent::Enter:
             case QEvent::Leave:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::Paint:
                 o->smoke = Smoke::classMap["QPaintEvent"].smoke;
-                o->classId = o->smoke->idClass("QPaintEvent").index;
+                o->classId = o->smoke()->idClass("QPaintEvent").index;
                 break;
             case QEvent::Move:
                 o->smoke = Smoke::classMap["QMoveEvent"].smoke;
-                o->classId = o->smoke->idClass("QMoveEvent").index;
+                o->classId = o->smoke()->idClass("QMoveEvent").index;
                 break;
             case QEvent::Resize:
                 o->smoke = Smoke::classMap["QResizeEvent"].smoke;
-                o->classId = o->smoke->idClass("QResizeEvent").index;
+                o->classId = o->smoke()->idClass("QResizeEvent").index;
                 break;
             case QEvent::Create:
             case QEvent::Destroy:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::Show:
                 o->smoke = Smoke::classMap["QShowEvent"].smoke;
-                o->classId = o->smoke->idClass("QShowEvent").index;
+                o->classId = o->smoke()->idClass("QShowEvent").index;
                 break;
             case QEvent::Hide:
                 o->smoke = Smoke::classMap["QHideEvent"].smoke;
-                o->classId = o->smoke->idClass("QHideEvent").index;
+                o->classId = o->smoke()->idClass("QHideEvent").index;
             case QEvent::Close:
                 o->smoke = Smoke::classMap["QCloseEvent"].smoke;
-                o->classId = o->smoke->idClass("QCloseEvent").index;
+                o->classId = o->smoke()->idClass("QCloseEvent").index;
                 break;
             case QEvent::Quit:
             case QEvent::ParentChange:
@@ -601,11 +610,11 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::ShowToParent:
             case QEvent::HideToParent:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::Wheel:
                 o->smoke = Smoke::classMap["QWheelEvent"].smoke;
-                o->classId = o->smoke->idClass("QWheelEvent").index;
+                o->classId = o->smoke()->idClass("QWheelEvent").index;
                 break;
             case QEvent::WindowTitleChange:
             case QEvent::WindowIconChange:
@@ -615,11 +624,11 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::ApplicationPaletteChange:
             case QEvent::PaletteChange:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::Clipboard:
                 o->smoke = Smoke::classMap["QClipboardEvent"].smoke;
-                o->classId = o->smoke->idClass("QClipboardEvent").index;
+                o->classId = o->smoke()->idClass("QClipboardEvent").index;
                 break;
             case QEvent::Speech:
             case QEvent::MetaCall:
@@ -627,32 +636,32 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::WinEventAct:
             case QEvent::DeferredDelete:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::DragEnter:
                 o->smoke = Smoke::classMap["QDragEnterEvent"].smoke;
-                o->classId = o->smoke->idClass("QDragEnterEvent").index;
+                o->classId = o->smoke()->idClass("QDragEnterEvent").index;
                 break;
             case QEvent::DragLeave:
                 o->smoke = Smoke::classMap["QDragLeaveEvent"].smoke;
-                o->classId = o->smoke->idClass("QDragLeaveEvent").index;
+                o->classId = o->smoke()->idClass("QDragLeaveEvent").index;
                 break;
             case QEvent::DragMove:
                 o->smoke = Smoke::classMap["QDragMoveEvent"].smoke;
-                o->classId = o->smoke->idClass("QDragMoveEvent").index;
+                o->classId = o->smoke()->idClass("QDragMoveEvent").index;
             case QEvent::Drop:
                 o->smoke = Smoke::classMap["QDropEvent"].smoke;
-                o->classId = o->smoke->idClass("QDropEvent").index;
+                o->classId = o->smoke()->idClass("QDropEvent").index;
                 break;
             case QEvent::DragResponse:
                 o->smoke = Smoke::classMap["QDragResponseEvent"].smoke;
-                o->classId = o->smoke->idClass("QDragResponseEvent").index;
+                o->classId = o->smoke()->idClass("QDragResponseEvent").index;
                 break;
             case QEvent::ChildAdded:
             case QEvent::ChildRemoved:
             case QEvent::ChildPolished:
                 o->smoke = Smoke::classMap["QChildEvent"].smoke;
-                o->classId = o->smoke->idClass("QChildEvent").index;
+                o->classId = o->smoke()->idClass("QChildEvent").index;
                 break;
             case QEvent::ShowWindowRequest:
             case QEvent::PolishRequest:
@@ -663,27 +672,27 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::ActivateControl:
             case QEvent::DeactivateControl:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::ContextMenu:
                 o->smoke = Smoke::classMap["QContextMenuEvent"].smoke;
-                o->classId = o->smoke->idClass("QContextMenuEvent").index;
+                o->classId = o->smoke()->idClass("QContextMenuEvent").index;
                 break;
             case QEvent::InputMethod:
                 o->smoke = Smoke::classMap["QInputMethodEvent"].smoke;
-                o->classId = o->smoke->idClass("QInputMethodEvent").index;
+                o->classId = o->smoke()->idClass("QInputMethodEvent").index;
                 break;
 #if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   		
             case QEvent::AccessibilityPrepare:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
 #endif
             case QEvent::TabletMove:
             case QEvent::TabletPress:
             case QEvent::TabletRelease:
                 o->smoke = Smoke::classMap["QTabletEvent"].smoke;
-                o->classId = o->smoke->idClass("QTabletEvent").index;
+                o->classId = o->smoke()->idClass("QTabletEvent").index;
                 break;
             case QEvent::LocaleChange:
             case QEvent::LanguageChange:
@@ -692,11 +701,11 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::OkRequest:
             case QEvent::HelpRequest:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::IconDrag:
                 o->smoke = Smoke::classMap["QIconDragEvent"].smoke;
-                o->classId = o->smoke->idClass("QIconDragEvent").index;
+                o->classId = o->smoke()->idClass("QIconDragEvent").index;
                 break;
             case QEvent::FontChange:
             case QEvent::EnabledChange:
@@ -706,44 +715,44 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::ModifiedChange:
             case QEvent::MouseTrackingChange:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::WindowBlocked:
             case QEvent::WindowUnblocked:
             case QEvent::WindowStateChange:
                 o->smoke = Smoke::classMap["QWindowStateChangeEvent"].smoke;
-                o->classId = o->smoke->idClass("QWindowStateChangeEvent").index;
+                o->classId = o->smoke()->idClass("QWindowStateChangeEvent").index;
                 break;
             case QEvent::ToolTip:
             case QEvent::WhatsThis:
                 o->smoke = Smoke::classMap["QHelpEvent"].smoke;
-                o->classId = o->smoke->idClass("QHelpEvent").index;
+                o->classId = o->smoke()->idClass("QHelpEvent").index;
                 break;
             case QEvent::StatusTip:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::ActionChanged:
             case QEvent::ActionAdded:
             case QEvent::ActionRemoved:
                 o->smoke = Smoke::classMap["QActionEvent"].smoke;
-                o->classId = o->smoke->idClass("QActionEvent").index;
+                o->classId = o->smoke()->idClass("QActionEvent").index;
                 break;
             case QEvent::FileOpen:
                 o->smoke = Smoke::classMap["QFileOpenEvent"].smoke;
-                o->classId = o->smoke->idClass("QFileOpenEvent").index;
+                o->classId = o->smoke()->idClass("QFileOpenEvent").index;
                 break;
             case QEvent::Shortcut:
                 o->smoke = Smoke::classMap["QShortcutEvent"].smoke;
-                o->classId = o->smoke->idClass("QShortcutEvent").index;
+                o->classId = o->smoke()->idClass("QShortcutEvent").index;
                 break;
             case QEvent::WhatsThisClicked:
                 o->smoke = Smoke::classMap["QWhatsThisClickedEvent"].smoke;
-                o->classId = o->smoke->idClass("QWhatsThisClickedEvent").index;
+                o->classId = o->smoke()->idClass("QWhatsThisClickedEvent").index;
                 break;
             case QEvent::ToolBarChange:
                 o->smoke = Smoke::classMap["QToolBarChangeEvent"].smoke;
-                o->classId = o->smoke->idClass("QToolBarChangeEvent").index;
+                o->classId = o->smoke()->idClass("QToolBarChangeEvent").index;
                 break;
             case QEvent::ApplicationActivated:
             case QEvent::ApplicationDeactivated:
@@ -752,19 +761,19 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::LeaveWhatsThisMode:
             case QEvent::ZOrderChange:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
             case QEvent::HoverEnter:
             case QEvent::HoverLeave:
             case QEvent::HoverMove:
                 o->smoke = Smoke::classMap["QHoverEvent"].smoke;
-                o->classId = o->smoke->idClass("QHoverEvent").index;
+                o->classId = o->smoke()->idClass("QHoverEvent").index;
                 break;
 #if QT_VERSION <= 0x050C00 //PTZ200104  in /qt5/QtWidgets/   			
             case QEvent::AccessibilityHelp:
             case QEvent::AccessibilityDescription:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
 #endif
 #if QT_VERSION >= 0x40200
             case QEvent::GraphicsSceneMouseMove:
@@ -772,49 +781,49 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
             case QEvent::GraphicsSceneMouseRelease:
             case QEvent::GraphicsSceneMouseDoubleClick:
                 o->smoke = Smoke::classMap["QGraphicsSceneMouseEvent"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsSceneMouseEvent").index;
+                o->classId = o->smoke()->idClass("QGraphicsSceneMouseEvent").index;
                 break;
             case QEvent::GraphicsSceneContextMenu:
                 o->smoke = Smoke::classMap["QGraphicsSceneContextMenuEvent"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsSceneContextMenuEvent").index;
+                o->classId = o->smoke()->idClass("QGraphicsSceneContextMenuEvent").index;
                 break;
             case QEvent::GraphicsSceneHoverEnter:
             case QEvent::GraphicsSceneHoverMove:
             case QEvent::GraphicsSceneHoverLeave:
                 o->smoke = Smoke::classMap["QGraphicsSceneHoverEvent"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsSceneHoverEvent").index;
+                o->classId = o->smoke()->idClass("QGraphicsSceneHoverEvent").index;
                 break;
             case QEvent::GraphicsSceneHelp:
                 o->smoke = Smoke::classMap["QGraphicsSceneHelpEvent"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsSceneHelpEvent").index;
+                o->classId = o->smoke()->idClass("QGraphicsSceneHelpEvent").index;
                 break;
             case QEvent::GraphicsSceneDragEnter:
             case QEvent::GraphicsSceneDragMove:
             case QEvent::GraphicsSceneDragLeave:
             case QEvent::GraphicsSceneDrop:
                 o->smoke = Smoke::classMap["QGraphicsSceneDragDropEvent"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsSceneDragDropEvent").index;
+                o->classId = o->smoke()->idClass("QGraphicsSceneDragDropEvent").index;
                 break;
             case QEvent::GraphicsSceneWheel:
                 o->smoke = Smoke::classMap["QGraphicsSceneWheelEvent"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsSceneWheelEvent").index;
+                o->classId = o->smoke()->idClass("QGraphicsSceneWheelEvent").index;
                 break;
             case QEvent::KeyboardLayoutChange:
                 o->smoke = Smoke::classMap["QEvent"].smoke;
-                o->classId = o->smoke->idClass("QEvent").index;
+                o->classId = o->smoke()->idClass("QEvent").index;
                 break;
 #endif
             default:
                 break;
         }
-    } else if (o->smoke->isDerivedFrom(o->smoke->classes[o->classId].className, "QObject")) {
-        QObject * qobject = (QObject *) o->smoke->cast(o->ptr, o->classId, o->smoke->idClass("QObject").index);
+    } else if (o->smoke()->isDerivedFrom(o->smoke()->classes[o->classId].className, "QObject")) {
+        QObject * qobject = (QObject *) o->smoke()->cast(o->ptr, o->classId, o->smoke()->idClass("QObject").index);
         const QMetaObject * meta = qobject->metaObject();
 
         while (meta != 0) {
             o->smoke = Smoke::classMap[meta->className()].smoke;
             if (o->smoke != 0) {
-                o->classId = o->smoke->idClass(meta->className()).index;
+                o->classId = o->smoke()->idClass(meta->className()).index;
                 if (o->classId != 0) {
                     return perlqt_modules[o->smoke].binding->className(o->classId);
                 }
@@ -822,64 +831,67 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
 
             meta = meta->superClass();
         }
-    } else if (o->smoke->isDerivedFrom(o->smoke->classes[o->classId].className, "QGraphicsItem")) {
-        QGraphicsItem * item = (QGraphicsItem *) o->smoke->cast(o->ptr, o->classId, o->smoke->idClass("QGraphicsItem").index);
+    } else if (o->smoke()->isDerivedFrom(o->smoke()->classes[o->classId].className, "QGraphicsItem")) {
+        QGraphicsItem * item = (QGraphicsItem *) o->smoke()->cast(o->ptr, o->classId, o->smoke()->idClass("QGraphicsItem").index);
         switch (item->type()) {
             case 1:
                 o->smoke = Smoke::classMap["QGraphicsItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsItem").index;
                 break;
             case 2:
                 o->smoke = Smoke::classMap["QGraphicsPathItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsPathItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsPathItem").index;
                 break;
             case 3:
                 o->smoke = Smoke::classMap["QGraphicsRectItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsRectItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsRectItem").index;
             case 4:
                 o->smoke = Smoke::classMap["QGraphicsEllipseItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsEllipseItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsEllipseItem").index;
                 break;
             case 5:
                 o->smoke = Smoke::classMap["QGraphicsPolygonItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsPolygonItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsPolygonItem").index;
                 break;
             case 6:
                 o->smoke = Smoke::classMap["QGraphicsLineItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsLineItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsLineItem").index;
                 break;
             case 7:
                 o->smoke = Smoke::classMap["QGraphicsItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsItem").index;
                 break;
             case 8:
                 o->smoke = Smoke::classMap["QGraphicsTextItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsTextItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsTextItem").index;
                 break;
             case 9:
                 o->smoke = Smoke::classMap["QGraphicsSimpleTextItem"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsSimpleTextItem").index;
+                o->classId = o->smoke()->idClass("QGraphicsSimpleTextItem").index;
                 break;
             case 10:
                 o->smoke = Smoke::classMap["QGraphicsItemGroup"].smoke;
-                o->classId = o->smoke->idClass("QGraphicsItemGroup").index;
+                o->classId = o->smoke()->idClass("QGraphicsItemGroup").index;
                 break;
         }
-    } else if (o->smoke->isDerivedFrom(o->smoke->classes[o->classId].className, "QLayoutItem")) {
-        QLayoutItem * item = (QLayoutItem *) o->smoke->cast(o->ptr, o->classId, o->smoke->idClass("QLayoutItem").index);
+    } else if (o->smoke()->isDerivedFrom(o->smoke()->classes[o->classId].className, "QLayoutItem")) {
+        QLayoutItem * item = (QLayoutItem *) o->smoke()->cast(o->ptr, o->classId, o->smoke()->idClass("QLayoutItem").index);
         if (item->widget() != 0) {
             o->smoke = Smoke::classMap["QWidgetItem"].smoke;
-            o->classId = o->smoke->idClass("QWidgetItem").index;
+            o->classId = o->smoke()->idClass("QWidgetItem").index;
         } else if (item->spacerItem() != 0) {
             o->smoke = Smoke::classMap["QSpacerItem"].smoke;
-            o->classId = o->smoke->idClass("QSpacerItem").index;
+            o->classId = o->smoke()->idClass("QSpacerItem").index;
         }
     }
 
     return perlqt_modules[o->smoke].binding->className(o->classId);
 }
+#endif //trouve an autre derivation...!
 
 Q_DECL_EXPORT SV* set_obj_info(const char * className, smokeperl_object * o) {
+ //PTZ200207
+#if _PTZ200207_qt4  
     // The hash
     SV* obj;
     SV* var;
@@ -904,19 +916,34 @@ Q_DECL_EXPORT SV* set_obj_info(const char * className, smokeperl_object * o) {
 
     // We're done with our local var
     return var;
+#else
+
+    SV* _sv = o->wrap();
+
+    //PTZ200207  aka construct_copy( o );
+    SmokePerl::ObjectMap::instance().insert(o, o->classId);
+    
+    // Bless the sv to that package.
+    if (className == nullptr) {
+      SmokePerl::SmokePerlBinding* _binding
+	= SmokePerl::SmokeManager::instance().getBindingForSmoke(o->classId.smoke);
+      className = _binding->className(o->classId.index);
+    }
+    return sv_bless(_sv, gv_stashpv(className, TRUE));
+#endif    
 }
 
 // Returns the memory address of the cxxptr stored within a given sv.
 void* sv_to_ptr(SV* sv) {
     smokeperl_object* o = sv_obj_info(sv);
-    return o ? o->ptr : 0;
+    return o ? o->ptr() : 0;
 }
 
 // Remove the values entered in pointer_map hash, called from
 // PerlQt5::Binding::deleted when the destructor of a smoke object is called
 void unmapPointer( smokeperl_object* o, Smoke::Index classId, void* lastptr) {
     HV* hv = pointer_map;
-    void* ptr = o->smoke->cast( o->ptr, o->classId, classId );
+    void* ptr = o->smoke()->cast( o->ptr(), o->classId.index, classId );
     if( ptr != lastptr) { //recurse
         lastptr = ptr;
         SV* keysv = newSViv((IV)ptr);
@@ -927,7 +954,7 @@ void unmapPointer( smokeperl_object* o, Smoke::Index classId, void* lastptr) {
         SvREFCNT_dec(keysv);
     }
     // Do the same for all parent classes
-    for(Smoke::Index *i = o->smoke->inheritanceList + o->smoke->classes[classId].parents; *i; i++) {
+    for(Smoke::Index *i = o->smoke()->inheritanceList + o->smoke()->classes[classId].parents; *i; i++) {
         unmapPointer(o, *i, lastptr);
     }
 }
@@ -957,7 +984,7 @@ pl_qFindChildren_helper(SV* parent, const QString &objectName, SV* re,
     for (int i = 0; i < av_len(children)+1; ++i) {
         rv = *(av_fetch(children, i, 0));
         smokeperl_object *o = sv_obj_info(rv);
-        QObject * obj = (QObject *) o->smoke->cast(o->ptr, o->classId, o->smoke->idClass("QObject").index);
+        QObject * obj = (QObject *) o->smoke()->cast(o->ptr(), o->classId.index, o->smoke()->idClass("QObject").index);
 
         // The original code had 'if (mo.cast(obj))' as a test, but it doesn't work here
         if (obj->qt_metacast(mo.className()) != 0) {
@@ -994,7 +1021,7 @@ XS(XS_qobject_qt_metacast) {
     }
 
     smokeperl_object *o = sv_obj_info(mythis);
-	if (o == 0 || o->ptr == 0) {
+    if (o == 0 || o->ptr() == 0) {
 		XSRETURN_UNDEF;
 	}
 
@@ -1005,7 +1032,7 @@ XS(XS_qobject_qt_metacast) {
 		XSRETURN_UNDEF;
 	}
 
-	QObject* qobj = (QObject*) o->smoke->cast(o->ptr, o->classId, o->smoke->idClass("QObject").index);
+	QObject* qobj = (QObject*) o->smoke()->cast(o->ptr(), o->classId.index, o->smoke()->idClass("QObject").index);
 	if (qobj == 0) {
 		XSRETURN_UNDEF;
 	}
@@ -1018,13 +1045,14 @@ XS(XS_qobject_qt_metacast) {
 
     SV* obj = getPointerObject(ret);
     if ( !obj ) {
-        smokeperl_object * o_cast = alloc_smokeperl_object(
-            o->allocated, qtcore_Smoke, classId, ret );
+        smokeperl_object * o_cast
+	  //PTZ200207	  = alloc_smokeperl_object(o->allocated(), classId, ret);
+	  = alloc_smokeperl_object(o->allocated(), o->classId, ret);
 
-        classname = perlqt_modules[o->smoke].resolve_classname(o);
+        classname = perlqt_modules[o->smoke()].resolve_classname(o);
 
         obj = sv_2mortal( set_obj_info( classname, o_cast ) );
-        mapPointer(obj, o_cast, pointer_map, o_cast->classId, 0);
+        mapPointer(obj, o_cast, pointer_map, o_cast->classId.index, 0);
     }
     ST(0) = obj;
     XSRETURN(1);
@@ -1071,7 +1099,7 @@ XS(XS_find_qobject_children) {
     smokeperl_object* metao = sv_obj_info(metaobjectSV);
     if(!metao) 
         croak("Call to get metaObject failed.");
-    const QMetaObject* metaobject = (QMetaObject*)metao->ptr;
+    const QMetaObject* metaobject = (QMetaObject*)metao->ptr();
     AV* list = newAV();
     pl_qFindChildren_helper(sv_this, objectName, re, *metaobject, list);
     SV* result = newRV_noinc((SV*)list);
@@ -1139,7 +1167,7 @@ XS(XS_qabstract_item_model_rowcount) {
         croak( "%s", "Qt::AbstractItemModel::rowCount called on a"
             " non-AbstractItemModel object");
 
-    QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+    QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
     if (items == 1) {
 		XSRETURN_IV(model->rowCount());
@@ -1153,7 +1181,7 @@ XS(XS_qabstract_item_model_rowcount) {
             croak( "%s", "1st argument to Qt::AbstractItemModel::rowCount is"
                 " not a Qt::ModelIndex" );
 
-		QModelIndex * modelIndex = (QModelIndex *) mi->ptr;
+	QModelIndex * modelIndex = (QModelIndex *) mi->ptr();
 
 		XSRETURN_IV(model->rowCount(*modelIndex));
 	}
@@ -1173,7 +1201,7 @@ XS(XS_qabstract_item_model_columncount) {
         croak( "%s", "Qt::AbstractItemModel::columnCount called on a"
             " non-AbstractItemModel object");
 
-    QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+    QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
     if (items == 1) {
 		XSRETURN_IV(model->columnCount());
@@ -1188,7 +1216,7 @@ XS(XS_qabstract_item_model_columncount) {
             croak( "%s", "1st argument to Qt::AbstractItemModel::columnCount is"
                 " not a Qt::ModelIndex" );
 
-		QModelIndex * modelIndex = (QModelIndex *) mi->ptr;
+	QModelIndex * modelIndex = (QModelIndex *) mi->ptr();
 		XSRETURN_IV(model->columnCount(*modelIndex));
 	}
     else {
@@ -1205,7 +1233,7 @@ XS(XS_qabstract_item_model_data) {
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::data called on a"
             " non-AbstractItemModel object");
-	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+    QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
     smokeperl_object * mi = sv_obj_info(ST(1));
     if(!mi)
@@ -1214,7 +1242,7 @@ XS(XS_qabstract_item_model_data) {
     if(isDerivedFrom(mi, "QModelIndex") == -1)
         croak( "%s", "1st argument to Qt::AbstractItemModel::data is"
             " not a Qt::ModelIndex" );
-	QModelIndex * modelIndex = (QModelIndex *) mi->ptr;
+    QModelIndex * modelIndex = (QModelIndex *) mi->ptr();
 
 	QVariant value;
 	if (items == 2) {
@@ -1227,11 +1255,10 @@ XS(XS_qabstract_item_model_data) {
 	} else {
 		croak("%s", "Invalid argument list to Qt::AbstractItemModel::data");
 	}
-
+	//PTZ200121 qt5 addapted
     smokeperl_object* obj = alloc_smokeperl_object(
         true,
-        o->smoke,
-        o->smoke->idClass("QVariant").index,
+        o->smoke()->idClass("QVariant"),
         new QVariant(value) );
 
     SV* retval = set_obj_info( " Qt::Variant", obj );
@@ -1252,7 +1279,7 @@ XS(XS_qabstract_item_model_setdata) {
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::setData called on a"
             " non-AbstractItemModel object");
-	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+    QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
     smokeperl_object * mi = sv_obj_info(ST(1));
     if(!mi)
@@ -1261,7 +1288,7 @@ XS(XS_qabstract_item_model_setdata) {
     if(isDerivedFrom(mi, "QModelIndex") == -1)
         croak( "%s", "1st argument to Qt::AbstractItemModel::setData is"
             " not a Qt5::ModelIndex" );
-	QModelIndex * modelIndex = (QModelIndex *) mi->ptr;
+    QModelIndex * modelIndex = (QModelIndex *) mi->ptr();
 
     smokeperl_object * v = sv_obj_info(ST(2));
     if(!v)
@@ -1270,7 +1297,7 @@ XS(XS_qabstract_item_model_setdata) {
     if(isDerivedFrom(v, "QVariant") == -1)
         croak( "%s", "2nd argument to Qt::AbstractItemModel::setData is"
             " not a Qt::Variant" );
-	QVariant * variant = (QVariant *) v->ptr;
+    QVariant * variant = (QVariant *) v->ptr();
 
 	if ( items == 3 ) {
 		if ( model->setData(*modelIndex, *variant) ) {
@@ -1302,7 +1329,7 @@ XS(XS_qabstract_item_model_insertrows) {
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::insertRows called on a"
             " non-AbstractItemModel object");
-	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
 	if (items == 3) {
         //bool insertRows( int row, int count )
@@ -1322,7 +1349,7 @@ XS(XS_qabstract_item_model_insertrows) {
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::insertRows is"
                 " not a Qt::ModelIndex" );
-		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr;
+		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr();
 
 		if (model->insertRows(SvIV(ST(1)), SvIV(ST(2)), *modelIndex)) {
             XSRETURN_YES;
@@ -1344,7 +1371,7 @@ XS(XS_qabstract_item_model_insertcolumns) {
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::insertColumns called on a"
             " non-AbstractItemModel object");
-	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
 	if (items == 3) {
         //bool insertColumns( int column, int count )
@@ -1364,7 +1391,7 @@ XS(XS_qabstract_item_model_insertcolumns) {
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::insertColumns is"
                 " not a Qt::ModelIndex" );
-		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr;
+		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr();
 		if (model->insertColumns(SvIV(ST(1)), SvIV(ST(2)), *modelIndex)) {
             XSRETURN_YES;
         }
@@ -1385,7 +1412,7 @@ XS(XS_qabstract_item_model_removerows) {
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::removeRows called on a"
             " non-AbstractItemModel object");
-	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
 	if (items == 3) {
         //bool removeRows( int row, int count )
@@ -1405,7 +1432,7 @@ XS(XS_qabstract_item_model_removerows) {
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::removeRows is"
                 " not a Qt::ModelIndex" );
-		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr;
+		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr();
 		if (model->removeRows(SvIV(ST(1)), SvIV(ST(2)), *modelIndex)) {
             XSRETURN_YES;
         }
@@ -1426,7 +1453,7 @@ XS(XS_qabstract_item_model_removecolumns) {
     if(isDerivedFrom(o, "QAbstractItemModel") == -1)
         croak( "%s", "Qt::AbstractItemModel::removeColumns called on a"
             " non-AbstractItemModel object");
-	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr;
+	QAbstractItemModel * model = (QAbstractItemModel *) o->ptr();
 
 	if (items == 3) {
         //bool removeColumns( int column, int count )
@@ -1446,7 +1473,7 @@ XS(XS_qabstract_item_model_removecolumns) {
         if(isDerivedFrom(mi, "QModelIndex") == -1)
             croak( "%s", "1st argument to Qt::AbstractItemModel::removeColumns is"
                 " not a Qt::ModelIndex" );
-		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr;
+		const QModelIndex * modelIndex = (const QModelIndex *) mi->ptr();
 		if (model->removeColumns(SvIV(ST(1)), SvIV(ST(2)), *modelIndex)) {
             XSRETURN_YES;
         }
@@ -1498,11 +1525,10 @@ XS(XS_qabstractitemmodel_createindex) {
                     SvREFCNT_inc(refval);
                     stack[3].s_voidp = (void*)refval;
                 }
-                (*fn)(m.method, o->ptr, stack);
+                (*fn)(m.method, o->ptr(), stack);
                 smokeperl_object* result = alloc_smokeperl_object(
                     true, 
-                    qtcore_Smoke,
-                    qtcore_Smoke->idClass("QModelIndex").index, 
+                    qtcore_Smoke->idClass("QModelIndex"), 
                     stack[0].s_voidp
                 );
 
@@ -1520,7 +1546,7 @@ XS(XS_qabstractitemmodel_createindex) {
 XS(XS_qmodelindex_internalpointer) {
     dXSARGS;
     smokeperl_object *o = sv_obj_info(ST(0));
-	QModelIndex * index = (QModelIndex *) o->ptr;
+	QModelIndex * index = (QModelIndex *) o->ptr();
 	void * ptr = index->internalPointer();
     if(ptr) {
         SV* svptr = (SV*)ptr;
@@ -1551,7 +1577,7 @@ XS(XS_qbytearray_data) {
             " non-ByteArray object");
     }
 
-    QByteArray * bytes = (QByteArray *) o->ptr;
+    QByteArray * bytes = (QByteArray *) o->ptr();
     ST(0) = sv_2mortal( perlstringFromQByteArray(bytes) );
 
     XSRETURN(1);
@@ -1579,10 +1605,10 @@ XS(XS_qiodevice_read) {
             " non-IODevice object");
     }
 
-    QIODevice * device = (QIODevice *) o->smoke->cast(
-        o->ptr,
+    QIODevice * device = (QIODevice *) o->smoke()->cast(
+        o->ptr(),
         o->classId,
-        o->smoke->idClass("QIODevice").index
+        o->smoke()->idClass("QIODevice")
     );
 
     if (items == 2) {
@@ -1592,8 +1618,7 @@ XS(XS_qiodevice_read) {
         QByteArray * copy = new QByteArray( bytearray );
         smokeperl_object* o = alloc_smokeperl_object(
             true,
-            qtcore_Smoke,
-            qtcore_Smoke->idClass("QByteArray").index,
+            qtcore_Smoke->idClass("QByteArray"),
             (void*)copy
         );
         ST(0) = sv_2mortal( set_obj_info( " Qt::ByteArray", o) );
@@ -1632,10 +1657,10 @@ XS(XS_qdatastream_readrawdata) {
             " non-DataStream object");
     }
 
-    QDataStream * stream = (QDataStream *) o->smoke->cast(
-        o->ptr,
-        o->classId,
-        o->smoke->idClass("QDataStream").index
+    QDataStream * stream = (QDataStream *) o->smoke()->cast(
+        o->ptr(),
+        o->classId.index,
+        o->smoke()->idClass("QDataStream").index
     );
 
     if ( !SvROK(ST(1)) ) {
@@ -1667,12 +1692,12 @@ XS(XS_qvariant_value) {
     }
 
     smokeperl_object *o = sv_obj_info(ST(0));
-	if (o == 0 || o->ptr == 0) {
+	if (o == 0 || o->ptr() == 0) {
 		ST(0) = retval;
         XSRETURN(1);
 	}
 
-	QVariant * variant = (QVariant*) o->ptr;
+	QVariant * variant = (QVariant*) o->ptr();
 
     // If the QVariant contains a user type, don't bother to look at the Perl
     // class argument
@@ -1706,12 +1731,11 @@ XS(XS_qvariant_value) {
 	  //TODO:PTZ200107 warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
 				   , (const void *) variant->constData());
 	  
-            Smoke::ModuleIndex mi = o->smoke->findClass("QVariant");
+            Smoke::ModuleIndex mi = o->smoke()->findClass("QVariant");
 
             smokeperl_object* obj = alloc_smokeperl_object(
                 true,
-                mi.smoke,
-                mi.index,
+                mi,
                 value_ptr );
 
             SV* retval = set_obj_info( perlqt_modules[mi.smoke].binding->className(mi.index), obj );
@@ -1724,12 +1748,11 @@ XS(XS_qvariant_value) {
 	  = ((const QMetaType*)variant)
 	  ->QMetaType::construct((void *) QMetaType::type(variant->typeName())
 				 , (void *) variant->constData());
-        Smoke::ModuleIndex mi = o->smoke->findClass(variant->typeName());
+        Smoke::ModuleIndex mi = o->smoke()->findClass(variant->typeName());
 
         smokeperl_object* obj = alloc_smokeperl_object(
             true,
-            mi.smoke,
-            mi.index,
+            mi,
             value_ptr );
 
         SV* retval = set_obj_info( perlqt_modules[mi.smoke].binding->className(mi.index), obj );
@@ -1813,11 +1836,17 @@ XS(XS_qvariant_value) {
 		return rb_funcall(variant_value, rb_intern(toValueMethodName), 1, variant_value);
         */
 	}
+	
+	//PTZ200206
+	smokeperl_object* reto = alloc_smokeperl_object(true, *sv_class_id, sv_ptr);
 
-    smokeperl_object* reto = alloc_smokeperl_object(
-        true, sv_class_id->smoke, sv_class_id->index, sv_ptr);
-    const char* retclassname = perlqt_modules[reto->smoke].resolve_classname(reto);
-    retval = set_obj_info( retclassname, reto );
+	//const char* retclassname = perlqt_modules[reto->smoke].resolve_classname(reto);
+	//PTZ200206 alternative unless this module index is not yet build... stiil not sure
+	// Smoke::ModuleIndex mi = reto->classId;
+	// std::string retclassname(mi.smoke->classes[mi.index].className);    
+	// retval = set_obj_info(retclassname.c_str(), reto);
+
+    retval = set_obj_info(nullptr, reto);
 
     delete sv_class_id;
 
@@ -1834,7 +1863,9 @@ XS(XS_qvariant_from_value) {
     }
 
     if (items == 2) {
-        Smoke::ModuleIndex nameId = qtcore_Smoke->NullModuleIndex;
+      //PTZ200204 Smoke::ModuleIndex nameId = qtcore_Smoke->NullModuleIndex;
+
+	Smoke::ModuleIndex nameId = Smoke::NullModuleIndex;
         smokeperl_object *o = sv_obj_info(ST(0));
         if (o) {
             nameId = qtcore_Smoke->idMethodName("QVariant#");
@@ -1852,7 +1883,7 @@ XS(XS_qvariant_from_value) {
                         HvNAME(ST(1)) ) == 0 )
             {
                 Smoke::Index methodId = meth.smoke->ambiguousMethodList[i];
-                PerlQt::MethodCall c(qtcore_Smoke, methodId, o, SP, 0);
+                PerlQt5::MethodCall c(qtcore_Smoke, methodId, o, SP, 0);
                 c.next();
                 ST(0) = sv_2mortal(c.var());
                 XSRETURN(1);
@@ -1873,39 +1904,39 @@ XS(XS_qvariant_from_value) {
 
     if(o) {
         if (qstrcmp(classname, " Qt::Pixmap") == 0) {
-            v = new QVariant(qVariantFromValue(*(QPixmap*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QPixmap*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Font") == 0) {
-            v = new QVariant(qVariantFromValue(*(QFont*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QFont*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Brush") == 0) {
-            v = new QVariant(qVariantFromValue(*(QBrush*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QBrush*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Color") == 0) {
-            v = new QVariant(qVariantFromValue(*(QColor*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QColor*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Palette") == 0) {
-            v = new QVariant(qVariantFromValue(*(QPalette*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QPalette*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Icon") == 0) {
-            v = new QVariant(qVariantFromValue(*(QIcon*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QIcon*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Image") == 0) {
-            v = new QVariant(qVariantFromValue(*(QImage*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QImage*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Polygon") == 0) {
-            v = new QVariant(qVariantFromValue(*(QPolygon*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QPolygon*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Region") == 0) {
-            v = new QVariant(qVariantFromValue(*(QRegion*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QRegion*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Bitmap") == 0) {
-            v = new QVariant(qVariantFromValue(*(QBitmap*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QBitmap*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Cursor") == 0) {
-            v = new QVariant(qVariantFromValue(*(QCursor*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QCursor*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::SizePolicy") == 0) {
-            v = new QVariant(qVariantFromValue(*(QSizePolicy*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QSizePolicy*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::KeySequence") == 0) {
-            v = new QVariant(qVariantFromValue(*(QKeySequence*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QKeySequence*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::Pen") == 0) {
-            v = new QVariant(qVariantFromValue(*(QPen*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QPen*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::TextLength") == 0) {
-            v = new QVariant(qVariantFromValue(*(QTextLength*) o->ptr));
+            v = new QVariant(qVariantFromValue(*(QTextLength*) o->ptr()));
         } else if (qstrcmp(classname, " Qt::TextFormat") == 0) {
-            v = new QVariant(qVariantFromValue(*(QTextFormat*) o->ptr));
-        } else if (QVariant::nameToType(o->smoke->classes[o->classId].className) >= QVariant::UserType) {
-            v = new QVariant(QMetaType::type(o->smoke->classes[o->classId].className), o->ptr);
+            v = new QVariant(qVariantFromValue(*(QTextFormat*) o->ptr()));
+        } else if (QVariant::nameToType(o->smoke()->classes[o->classId.index].className) >= QVariant::UserType) {
+            v = new QVariant(QMetaType::type(o->smoke()->classes[o->classId.index].className), o->ptr());
         } else {
             // Assume the Qt::Variant can be created with a
             // Qt::Variant.new(obj) call
@@ -2002,7 +2033,12 @@ XS(XS_AUTOLOAD) {
         if((do_debug & qtdb_verbose) && withObject) {
             smokeperl_object *o = sv_obj_info(withObject ? ST(0) : sv_this);
             if(o)
-                fprintf(stderr, " - SV*: %p this: (%s)%p\n", withObject ? ST(0) : sv_this, o->smoke->classes[o->classId].className, o->ptr);
+                fprintf(stderr, " - SV*: %p this: (%s)%p\n"
+			, withObject
+			? ST(0)
+			: sv_this
+			, o->smoke()->classes[o->classId.index].className
+			, o->ptr());
             else
                 fprintf(stderr, " - this: (unknown)(nil)\n");
         }
@@ -2081,7 +2117,7 @@ XS(XS_AUTOLOAD) {
             }
             XSRETURN_YES;
         }
-        if( !(o && o->ptr && (o->allocated || getPointerObject(o->ptr))) ) {
+        if( !(o && o->ptr() && (o->allocated() || getPointerObject(o->ptr()))) ) {
             // This block will be repeated a lot to clean stuff up.
             if( withObject ) {
                 // Restore sv_this
@@ -2140,7 +2176,7 @@ XS(XS_AUTOLOAD) {
 
 #ifdef PERLQTDEBUG
         if( do_debug && retval && (do_debug & qtdb_gc) )
-            fprintf(stderr, "Increasing refcount in DESTROY for %s=%p (still has a parent)\n", packagecpy, o->ptr);
+            fprintf(stderr, "Increasing refcount in DESTROY for %s=%p (still has a parent)\n", packagecpy, o->ptr());
         delete[] packagecpy;
 #endif
 
@@ -2251,17 +2287,23 @@ XS(XS_AUTOLOAD) {
                 methcache.insert(mcid, new Smoke::ModuleIndex(mi));
         }
 
-        static smokeperl_object nothis = { 0, 0, 0, 0 /* todo PTZ181001 static_cast< void* >(-1)*/ };
+        //static smokeperl_object nothis = { 0, 0, 0, 0 /* todo PTZ181001 static_cast< void* >(-1)*/ };
+	//not good...cannot bind non-const lvalue reference of type ‘void*&’ to an rvalue of type ‘void*’
+	//static smokeperl_object nothis(nullptr, Smoke::NullModuleIndex, SmokePerl::Object::CppOwnership);
         smokeperl_object* call_this = 0;
         if ( SvOK(sv_this) ) {
             call_this = sv_obj_info( sv_this );
-            if ( !call_this )
-                call_this = &nothis;
+            // if ( !call_this )
+            //     call_this = &nothis;
         }
-        else {
-            call_this = &nothis;
-        }
-
+        // else {
+        //     call_this = &nothis;
+        // }
+            //
+	if (!call_this) {
+	  //better croak("%s",
+	  call_this = alloc_smokeperl_object(false, Smoke::NullModuleIndex, nullptr);
+	}
 #ifdef PERLQTDEBUG
         if(do_debug && (do_debug & qtdb_calls)) {
             fprintf(stderr, "Calling method\t%s\t%s\n", methodname, SvPV_nolen(sv_2mortal(prettyPrintMethod(mi))));
@@ -2271,7 +2313,7 @@ XS(XS_AUTOLOAD) {
         }
 #endif
 
-        PerlQt::MethodCall call( mi.smoke,
+        PerlQt5::MethodCall call( mi.smoke,
                          mi.index,
                          call_this,
                          savestack,
