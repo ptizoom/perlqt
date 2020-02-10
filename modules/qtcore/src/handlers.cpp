@@ -298,8 +298,13 @@ SV* perlstringFromQByteArray( QByteArray * s ) {
     return newSVpv(s->data(), s->size());
 }
 
+//using marshall_basetype=SmokePerl::marshall_basetype;
+//using marshall_void=SmokePerl::marshall_void;
+//using marshall_unknown=SmokePerl::marshall_unknown;
+
+#if _TODO_PTZ200121
 void marshall_basetype(Marshall* m) {
-    switch( m->type().elem() ) {
+    switch( m->type().element() ) {
 
         case Smoke::t_bool:
             marshall_it<bool>(m);
@@ -510,11 +515,13 @@ void marshall_basetype(Marshall* m) {
         break;
     }
 }
-
 void marshall_void(Marshall *) {}
 void marshall_unknown(Marshall *m) {
     m->unsupported();
 }
+
+#endif
+
 
 static void marshall_doubleR(Marshall *m) {
     switch(m->action()) {
@@ -2602,7 +2609,7 @@ void install_handlers(TypeHandler *handler) {
 }
 
 Marshall::HandlerFn getMarshallFn(const SmokeType &type) {
-    if(type.elem()) // If it's not t_voidp
+    if(type.element()) // If it's not t_voidp
         return marshall_basetype;
     if(!type.name())
         return marshall_void;

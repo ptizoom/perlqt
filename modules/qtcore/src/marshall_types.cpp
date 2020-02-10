@@ -50,7 +50,7 @@ smokeStackToQt4Stack(Smoke::Stack stack, void ** o, int start, int end, QList<Mo
             default: {
                 const SmokeType &t = args[i]->st;
                 void *p;
-                switch(t.elem()) {
+                switch(t.element()) {
                     case Smoke::t_bool:
                         p = &si->s_bool;
                         break;
@@ -151,7 +151,7 @@ smokeStackFromQt4Stack(Smoke::Stack stack, void ** _o, int start, int end, QList
             default: { // case xmoc_ptr:
                 const SmokeType &t = args[i]->st;
                 void *p = o;
-                switch(t.elem()) {
+                switch(t.element()) {
                     case Smoke::t_bool:
                         stack[j].s_bool = *(bool*)o;
                         break;
