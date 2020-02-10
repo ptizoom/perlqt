@@ -175,7 +175,7 @@ getNativeMetaObject( smokeId, methodId )
     CODE:
         smokeperl_object* nothis = alloc_smokeperl_object(false, Smoke::NullModuleIndex, nullptr);
         Smoke* smoke = smokeList[smokeId];
-        PerlQt::MethodCall call(
+        PerlQt5::MethodCall call(
             smoke,
             methodId,
             nothis,

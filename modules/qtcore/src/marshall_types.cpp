@@ -213,8 +213,8 @@ smokeStackFromQt4Stack(Smoke::Stack stack, void ** _o, int start, int end, QList
     }
 }
 
-namespace PerlQt {
-
+namespace PerlQt5 {
+#if _qt4_obsoleted_200205 //PTZ200205
     MethodReturnValueBase::MethodReturnValueBase(Smoke *smoke, Smoke::Index methodIndex, Smoke::Stack stack) :
       _smoke(smoke), _methodIndex(methodIndex), _stack(stack) {
         _type = SmokeType(_smoke, method().ret);
@@ -353,276 +353,326 @@ namespace PerlQt {
     SlotReturnValue::~SlotReturnValue() {
         delete[] _stack;
     }
+#endif //_qt4_obsoleted_200205 //PTZ200205
+    //------------------------------------------------
+#if 0 || _qt4_PTZ200206
+
+    //------------------------------------------------
+//   //PTZ200208 I would not use that
+//     MethodCallBase::MethodCallBase(Smoke *smoke, Smoke::Index meth)
+// //PTZ200205        : _smoke(smoke), _method(meth), _cur(-1), _called(false), _sp(0)  
+//     {
+//       // dXSARGS; dXCPT;    HV* stash = CvSTASH(cv);
+//       Smoke::ModuleIndex _mi(smoke, meth);
+//       SV** _argv(0);      //m_args = m_methodId.smoke->argumentList + m_methodRef.args;(methodId.smoke->methods[methodId.index]
+//       smokeperl_object* _o = alloc_smokeperl_object(false, _mi, nullptr);      
+//       SV*  _s(&PL_sv_undef);
+//       if (_o) {
+// 	std::string retclassname(_mi.smoke->classes[_mi.index].className);    
+// 	_s = set_obj_info(retclassname.c_str(), _o);	
+//       }
+//       //SmokePerl::MethodCall::MethodCall(_mi, _s, _argv);
+
+//     } : MethodCallBase(_mi, _s, _argv);
+
+//     MethodCallBase::MethodCallBase(Smoke *smoke, Smoke::Index meth, Smoke::Stack stack)
+// //PTZ200205        : _smoke(smoke), _method(meth), _stack(stack), _cur(-1), _called(false), _sp(0) 
+//     {  
+//       Smoke::ModuleIndex _mi(smoke, meth);
+//       smokeperl_object* o = alloc_smokeperl_object(false, _mi, nullptr);
+//       SV*  _s = o->sv;
+//       SV** argv(0);
+//       //m_stack = new Smoke::StackItem[m_methodRef.numArgs + 1];
+//       SmokePerl::MethodCall::MethodCall(mi, _s, argv);
+//    }
+//PTZ200205
+    // Smoke *MethodCallBase::smoke() { 
+    //     return _smoke; 
+    // }
+
+    // SmokeType MethodCallBase::type() { 
+    //     return SmokeType(_smoke, _args[_cur]); 
+    // }
+
+    // Smoke::StackItem &MethodCallBase::item() { 
+    //     return _stack[_cur + 1]; 
+    // }
+
+    // const Smoke::Method &MethodCallBase::method() { 
+    //     return _smoke->methods[_method]; 
+    // }
+
+    // void MethodCallBase::next() {
+    //     int oldcur = _cur;
+    //     _cur++;
+    //     while( !_called && _cur < items() ) {
+    //         Marshall::HandlerFn fn = getMarshallFn(type());
+
+    //         // The handler will call this function recursively.  The control
+    //         // flow looks like: 
+    //         // MethodCallBase::next -> TypeHandler fn -> recurse back to next()
+    //         // until all variables are marshalled -> callMethod -> TypeHandler
+    //         // fn to clean up any variables they create
+    //         (*fn)(this);
+    //         _cur++;
+    //     }
+
+    //     callMethod();
+    //     _cur = oldcur;
+    // }
+
+    // void MethodCallBase::unsupported() {
+    //     COP* callercop = caller(0);
+    //     croak("Cannot handle '%s' as argument of virtual method %s::%s"
+    //         "at %s line %lu\n",
+    //         type().name(),
+    //         _smoke->className(method().classId),
+    //         _smoke->methodNames[method().name],
+    //         GvNAME(CopFILEGV(callercop))+2,
+    //         CopLINE(callercop));
+    // }
+
+    // const char* MethodCallBase::classname() {
+    //     return _smoke->className(method().classId);
+    // }
+
+#endif //_qt4_obsoleted_200205 //PTZ200205
+    //------------------------------------------------
+// #if _qt4_PTZ200206
+//   //PTZ200120
+//   //using VirtualMethodCall = SmokePerl::VirtualMethodCall;
+
+//     VirtualMethodCall::VirtualMethodCall(Smoke *smoke, Smoke::Index meth, Smoke::Stack stack, SV *obj, GV *gv) :
+//       MethodCallBase(smoke,meth,stack), _gv(gv){
+//         dSP;
+//         ENTER;
+//         SAVETMPS;
+//         PUSHMARK(SP);
+//         EXTEND(SP, items());
+//         _savethis = sv_this;
+//         sv_this = newSVsv(obj);
+//         _sp = SP + 1;
+//         for(int i = 0; i < items(); i++)
+//             _sp[i] = sv_newmortal();
+//         _args = _smoke->argumentList + method().args;
+//     }
+
+//     VirtualMethodCall::~VirtualMethodCall() {
+//         SvREFCNT_dec(sv_this);
+//         sv_this = _savethis;
+//     }
+
+//     Marshall::Action VirtualMethodCall::action() {
+//         return Marshall::ToSV;
+//     }
+
+//     SV *VirtualMethodCall::var() {
+//         return _sp[_cur];
+//     }
+
+//     int VirtualMethodCall::items() {
+//         return method().numArgs;
+//     }
+
+
+//     void VirtualMethodCall::callMethod() {
+//         if (_called) return;
+//         _called = true;
+
+//         // This is the stack pointer we'll pass to the perl call
+//         dSP;
+//         // This defines how many arguments we're sending to the perl sub
+//         SP = _sp + items() - 1;
+//         PUTBACK;
+//         I32 callFlags = G_SCALAR;
+//         if ( SvTRUE( get_sv("Qt::_internal::isEmbedded", FALSE) ) ) {
+//             callFlags |= G_EVAL;
+//         }
+//         // Call the perl sub
+//         call_sv((SV*)GvCV(_gv), callFlags);
+//         if( SvTRUE(ERRSV) ) {
+//             STRLEN n_a;
+//             fprintf( stderr, "Error in Perl plugin: $@: %s\n", SvPVx(ERRSV, n_a));
+//             PUTBACK;
+//             FREETMPS;
+//             LEAVE;
+//             return;
+//         }
+//         // Get the stack the perl sub returned
+//         SPAGAIN;
+//         // Marshall the return value back to c++, using the top of the stack
+//         VirtualMethodReturnValue r(_smoke, _method, _stack, POPs);
+//         if ( r.type().isClass() ) {
+//             const char* typeOfInput = get_SVt(r.var());
+//             if (strlen(typeOfInput) == 1) {
+//                 switch( *typeOfInput ) {
+//                     case 's':
+//                         croak( "Expected return value of type %s, but got a "
+//                                "string", r.type().name() );
+//                         break;
+//                     case 'i':
+//                     case 'n':
+//                         croak( "Expected return value of type %s, but got a "
+//                                "numeric value", r.type().name() );
+//                         break;
+//                     case 'u':
+//                     case 'U':
+//                         if ( !r.type().flags() & Smoke::tf_ptr )
+//                             croak( "Expected return value of type %s, but got an "
+//                                    "undefined value", r.type().name() );
+//                 }
+//             }
+//             else {
+//                 smokeperl_object* o = sv_obj_info(r.var());
+//                 if ( ( !o || !o->ptr ) && !(r.type().flags() & Smoke::tf_ptr) ) {
+//                     croak( "Expected return of type %s, but got an undefined value",
+//                         r.type().smoke()->classes[r.type().classId()].className
+//                     );
+//                 }
+//                 Smoke::ModuleIndex type( o->smoke, o->classId );
+//                 Smoke::ModuleIndex baseType;
+//                 Smoke::Class returnType = r.type().smoke()->classes[r.type().classId()];
+//                 if ( returnType.external ) {
+//                     const char* returnCxxClassname = returnType.className;
+//                     baseType = Smoke::classMap[returnCxxClassname];
+//                 }
+//                 else {
+//                     baseType = Smoke::ModuleIndex( r.type().smoke(), r.type().classId() );
+//                 }
+
+//                 if (!Smoke::isDerivedFrom( type, baseType )) {
+//                     croak( "Expected return of type %s, but got type %s",
+//                         r.type().smoke()->classes[r.type().classId()].className,
+//                         o->smoke->classes[o->classId].className
+//                     );
+//                 }
+//             }
+//         }
+//         PUTBACK;
+//         FREETMPS;
+//         LEAVE;
+
+//     }
+
+//     bool VirtualMethodCall::cleanup() {
+//         return false;
+//     }
+// #endif //_qt4_obsoleted_200205 //PTZ200205
+    //------------------------------------------------
+#if 0 || _qt4_PTZ200206
+  //PTZ200120
+
+  //------------------------------------------------
+
+  MethodCall::MethodCall(Smoke *smoke, Smoke::Index method, smokeperl_object *call_this, SV **_sp, int items)
+//PTZ200205      : MethodCallBase(smoke,method), _this(call_this), _sp(sp), _items(items)
+     : MethodCallBase(_mi, _self, _sp)
+  {
+    Smoke::ModuleIndex _mi(smoke, method);
+    SmokePerl::Object* _o = SmokePerl::ObjectMap::instance().get(call_this);
+    SV* _self = _o->sv;
+
+      
+      //SV** _argv(sp);//TODO:PTZ200120   m_methodRef(methodId.smoke->methods[methodId.index]),
+      // m_stack = new Smoke::StackItem[m_methodRef.numArgs + 1]; <--> items !
+      
+    //SmokePerl::MethodCall::MethodCall(_mi, _self, sp);
+    
+    //SmokePerl::MethodCall::MethodCall(_mi, _self, sp);
+      
+      
+   //TODO:PTZ200120 towards  MethodCall::MethodCall(Smoke::ModuleIndex mi, SV* self, SV** argv); ?     
+// #if 0
+//         if ( !(this->method().flags & (Smoke::mf_static|Smoke::mf_ctor)) && _this->ptr == 0 ) {
+//             COP* callercop = caller(0);
+//             croak( "%s::%s(): Non-static method called with no \"this\" value "
+//                 "at %s line %lu\n",
+//                 _smoke->className(this->method().classId),
+//                 _smoke->methodNames[this->method().name],
+//                 GvNAME(CopFILEGV(callercop))+2,
+//                 CopLINE(callercop) );
+//         }
+//         _stack = new Smoke::StackItem[items + 1];
+//         _args = _smoke->argumentList + _smoke->methods[_method].args;
+//         _retval = newSV(0);
+// #endif
+    }
+
+    // MethodCall::~MethodCall() {
+    //     delete[] _stack;
+    // }
+
+    // Marshall::Action MethodCall::action() {
+    //     return Marshall::FromSV;
+    // }
+
+    // SV *MethodCall::var() {
+    //     if(_cur < 0)
+    //         return _retval;
+    //     return *(_sp + _cur);
+    // }
+
+    // int MethodCall::items() {
+    //     return _items;
+    // }
+
+    // bool MethodCall::cleanup() {
+    //     return true;
+    // }
+
+    // const char *MethodCall::classname() {
+    //     return MethodCallBase::classname();
+    // }
 
     //------------------------------------------------
 
-    MethodCallBase::MethodCallBase(Smoke *smoke, Smoke::Index meth) :
-        _smoke(smoke), _method(meth), _cur(-1), _called(false), _sp(0)  
-    {  
-    }
+    // MarshallSingleArg::MarshallSingleArg(Smoke *smoke, SV* sv, SmokeType type) :
+    //   MethodCallBase(smoke, 0) {
+    //     _type = type;
+    //     _sv = sv;
+    //     _stack = new Smoke::StackItem[1];
+    //     Marshall::HandlerFn fn = getMarshallFn(this->type());
+    //     _cur = 0;
+    //     (*fn)(this);
+    // }
 
-    MethodCallBase::MethodCallBase(Smoke *smoke, Smoke::Index meth, Smoke::Stack stack) :
-        _smoke(smoke), _method(meth), _stack(stack), _cur(-1), _called(false), _sp(0) 
-    {  
-    }
+    // MarshallSingleArg::~MarshallSingleArg() {
+    //     delete[] _stack;
+    // }
 
-    Smoke *MethodCallBase::smoke() { 
-        return _smoke; 
-    }
+    // // We're passing an SV from perl to c++
+    // Marshall::Action MarshallSingleArg::action() {
+    //     return Marshall::FromSV;
+    // }
 
-    SmokeType MethodCallBase::type() { 
-        return SmokeType(_smoke, _args[_cur]); 
-    }
+    // SmokeType MarshallSingleArg::type() {
+    //     return this->_type;
+    // }
 
-    Smoke::StackItem &MethodCallBase::item() { 
-        return _stack[_cur + 1]; 
-    }
+    // SV *MarshallSingleArg::var() {
+    //     return _sv;
+    // }
 
-    const Smoke::Method &MethodCallBase::method() { 
-        return _smoke->methods[_method]; 
-    }
+    // int MarshallSingleArg::items() {
+    //     return 1;
+    // }
 
-    void MethodCallBase::next() {
-        int oldcur = _cur;
-        _cur++;
-        while( !_called && _cur < items() ) {
-            Marshall::HandlerFn fn = getMarshallFn(type());
+    // bool MarshallSingleArg::cleanup() {
+    //     return false;
+    // }
 
-            // The handler will call this function recursively.  The control
-            // flow looks like: 
-            // MethodCallBase::next -> TypeHandler fn -> recurse back to next()
-            // until all variables are marshalled -> callMethod -> TypeHandler
-            // fn to clean up any variables they create
-            (*fn)(this);
-            _cur++;
-        }
+    // const char *MarshallSingleArg::classname() {
+    //     return 0;
+    // }
 
-        callMethod();
-        _cur = oldcur;
-    }
+    // Smoke::StackItem &MarshallSingleArg::item() {
+    //     return _stack[0];
+    // }
+    // //------------------------------------------------
 
-    void MethodCallBase::unsupported() {
-        COP* callercop = caller(0);
-        croak("Cannot handle '%s' as argument of virtual method %s::%s"
-            "at %s line %lu\n",
-            type().name(),
-            _smoke->className(method().classId),
-            _smoke->methodNames[method().name],
-            GvNAME(CopFILEGV(callercop))+2,
-            CopLINE(callercop));
-    }
-
-    const char* MethodCallBase::classname() {
-        return _smoke->className(method().classId);
-    }
-
-    //------------------------------------------------
-
-    VirtualMethodCall::VirtualMethodCall(Smoke *smoke, Smoke::Index meth, Smoke::Stack stack, SV *obj, GV *gv) :
-      MethodCallBase(smoke,meth,stack), _gv(gv){
-        dSP;
-        ENTER;
-        SAVETMPS;
-        PUSHMARK(SP);
-        EXTEND(SP, items());
-        _savethis = sv_this;
-        sv_this = newSVsv(obj);
-        _sp = SP + 1;
-        for(int i = 0; i < items(); i++)
-            _sp[i] = sv_newmortal();
-        _args = _smoke->argumentList + method().args;
-    }
-
-    VirtualMethodCall::~VirtualMethodCall() {
-        SvREFCNT_dec(sv_this);
-        sv_this = _savethis;
-    }
-
-    Marshall::Action VirtualMethodCall::action() {
-        return Marshall::ToSV;
-    }
-
-    SV *VirtualMethodCall::var() {
-        return _sp[_cur];
-    }
-
-    int VirtualMethodCall::items() {
-        return method().numArgs;
-    }
-
-    void VirtualMethodCall::callMethod() {
-        if (_called) return;
-        _called = true;
-
-        // This is the stack pointer we'll pass to the perl call
-        dSP;
-        // This defines how many arguments we're sending to the perl sub
-        SP = _sp + items() - 1;
-        PUTBACK;
-        I32 callFlags = G_SCALAR;
-        if ( SvTRUE( get_sv("Qt::_internal::isEmbedded", FALSE) ) ) {
-            callFlags |= G_EVAL;
-        }
-        // Call the perl sub
-        call_sv((SV*)GvCV(_gv), callFlags);
-        if( SvTRUE(ERRSV) ) {
-            STRLEN n_a;
-            fprintf( stderr, "Error in Perl plugin: $@: %s\n", SvPVx(ERRSV, n_a));
-            PUTBACK;
-            FREETMPS;
-            LEAVE;
-            return;
-        }
-        // Get the stack the perl sub returned
-        SPAGAIN;
-        // Marshall the return value back to c++, using the top of the stack
-        VirtualMethodReturnValue r(_smoke, _method, _stack, POPs);
-        if ( r.type().isClass() ) {
-            const char* typeOfInput = get_SVt(r.var());
-            if (strlen(typeOfInput) == 1) {
-                switch( *typeOfInput ) {
-                    case 's':
-                        croak( "Expected return value of type %s, but got a "
-                               "string", r.type().name() );
-                        break;
-                    case 'i':
-                    case 'n':
-                        croak( "Expected return value of type %s, but got a "
-                               "numeric value", r.type().name() );
-                        break;
-                    case 'u':
-                    case 'U':
-                        if ( !r.type().flags() & Smoke::tf_ptr )
-                            croak( "Expected return value of type %s, but got an "
-                                   "undefined value", r.type().name() );
-                }
-            }
-            else {
-                smokeperl_object* o = sv_obj_info(r.var());
-                if ( ( !o || !o->ptr ) && !(r.type().flags() & Smoke::tf_ptr) ) {
-                    croak( "Expected return of type %s, but got an undefined value",
-                        r.type().smoke()->classes[r.type().classId()].className
-                    );
-                }
-                Smoke::ModuleIndex type( o->smoke, o->classId );
-                Smoke::ModuleIndex baseType;
-                Smoke::Class returnType = r.type().smoke()->classes[r.type().classId()];
-                if ( returnType.external ) {
-                    const char* returnCxxClassname = returnType.className;
-                    baseType = Smoke::classMap[returnCxxClassname];
-                }
-                else {
-                    baseType = Smoke::ModuleIndex( r.type().smoke(), r.type().classId() );
-                }
-
-                if (!Smoke::isDerivedFrom( type, baseType )) {
-                    croak( "Expected return of type %s, but got type %s",
-                        r.type().smoke()->classes[r.type().classId()].className,
-                        o->smoke->classes[o->classId].className
-                    );
-                }
-            }
-        }
-        PUTBACK;
-        FREETMPS;
-        LEAVE;
-
-    }
-
-    bool VirtualMethodCall::cleanup() {
-        return false;
-    }
-
-    //------------------------------------------------
-
-    MethodCall::MethodCall(Smoke *smoke, Smoke::Index method, smokeperl_object *call_this, SV **sp, int items):
-      MethodCallBase(smoke,method), _this(call_this), _sp(sp), _items(items) {
-        if ( !(this->method().flags & (Smoke::mf_static|Smoke::mf_ctor)) && _this->ptr == 0 ) {
-            COP* callercop = caller(0);
-            croak( "%s::%s(): Non-static method called with no \"this\" value "
-                "at %s line %lu\n",
-                _smoke->className(this->method().classId),
-                _smoke->methodNames[this->method().name],
-                GvNAME(CopFILEGV(callercop))+2,
-                CopLINE(callercop) );
-        }
-        _stack = new Smoke::StackItem[items + 1];
-        _args = _smoke->argumentList + _smoke->methods[_method].args;
-        _retval = newSV(0);
-    }
-
-    MethodCall::~MethodCall() {
-        delete[] _stack;
-    }
-
-    Marshall::Action MethodCall::action() {
-        return Marshall::FromSV;
-    }
-
-    SV *MethodCall::var() {
-        if(_cur < 0)
-            return _retval;
-        return *(_sp + _cur);
-    }
-
-    int MethodCall::items() {
-        return _items;
-    }
-
-    bool MethodCall::cleanup() {
-        return true;
-    }
-
-    const char *MethodCall::classname() {
-        return MethodCallBase::classname();
-    }
-
-    //------------------------------------------------
-
-    MarshallSingleArg::MarshallSingleArg(Smoke *smoke, SV* sv, SmokeType type) :
-      MethodCallBase(smoke, 0) {
-        _type = type;
-        _sv = sv;
-        _stack = new Smoke::StackItem[1];
-        Marshall::HandlerFn fn = getMarshallFn(this->type());
-        _cur = 0;
-        (*fn)(this);
-    }
-
-    MarshallSingleArg::~MarshallSingleArg() {
-        delete[] _stack;
-    }
-
-    // We're passing an SV from perl to c++
-    Marshall::Action MarshallSingleArg::action() {
-        return Marshall::FromSV;
-    }
-
-    SmokeType MarshallSingleArg::type() {
-        return this->_type;
-    }
-
-    SV *MarshallSingleArg::var() {
-        return _sv;
-    }
-
-    int MarshallSingleArg::items() {
-        return 1;
-    }
-
-    bool MarshallSingleArg::cleanup() {
-        return false;
-    }
-
-    const char *MarshallSingleArg::classname() {
-        return 0;
-    }
-
-    Smoke::StackItem &MarshallSingleArg::item() {
-        return _stack[0];
-    }
-    //------------------------------------------------
-
+#endif //_qt4_obsoleted_200205 //PTZ200205
+#if _qt4_obsoleted_200205 //PTZ200205
+  
     // The steps are:
     // Copy Qt4 stack to Smoke Stack
     // use next() to marshall the smoke stack
@@ -744,7 +794,9 @@ namespace PerlQt {
     void InvokeSlot::copyArguments() {
         smokeStackFromQt4Stack( _stack, _a + 1, 1, _items + 1, _args );
     }
+#endif
 
+#if 1
     //------------------------------------------------
 
     EmitSignal::EmitSignal(QObject *obj, const QMetaObject *meta, int id, int items, QList<MocArgument*> args, SV** sp, SV* retval) :
@@ -855,4 +907,6 @@ namespace PerlQt {
             o[0] = new QString;
         }
     }
+#endif //_qt4_obsoleted_200205 //PTZ200205
+  
 } // End namespace PerlQt4

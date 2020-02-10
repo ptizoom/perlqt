@@ -50,9 +50,22 @@ void XS_Vector_at( pTHX_ CV* cv)
                  break;
              }
         }
+#if 0	
         SmokeType type( typeId.smoke, typeId.index );
-        PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
-        RETVAL = callreturn.var();
+        PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );
+	RETVAL = callreturn.var();
+
+    // Smoke::StackItem stackItem;
+    // stackItem.s_voidp = metaObject;    
+    // Smoke::ModuleIndex methodId = qtcore_Smoke->findMethod("QObject", "staticMetaObject");
+    // methodId.index = qtcore_Smoke->methodMaps[methodId.index].method;
+    // PerlQt5::MethodCall::ReturnValue retvalMarshaller(methodId, &stackItem, retval);
+    // RETVAL = retval;
+#else
+    PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], RETVAL);
+#endif
+    
+
         ST(0) = RETVAL;
         // ST(0) is already mortal
     }
@@ -86,9 +99,13 @@ void XS_ValueVector_at( pTHX_ CV* cv)
                  break;
              }
         }
+#if 0	
         SmokeType type( typeId.smoke, typeId.index );
-        PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
+        PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );
         RETVAL = callreturn.var();
+#else
+	PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], RETVAL);
+#endif
         ST(0) = RETVAL;
         // ST(0) is already mortal
     }
@@ -264,9 +281,16 @@ void XS_ValueVector_delete( pTHX_ CV* cv)
                  break;
              }
         }
+#if 0 //PTZ200210	
         SmokeType type( typeId.smoke, typeId.index );
-        PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
+        PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );
         RETVAL = callreturn.var();
+#else
+	PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], RETVAL);
+#endif
+ 
+
+	
         if ( SvTYPE(SvRV(RETVAL)) == SVt_PVAV ) {
             for( int i=0; i < av_len((AV*)SvRV(RETVAL))+1; ++i ) {
                 SV* val = *(av_fetch((AV*)SvRV(RETVAL), i, 0));
@@ -331,7 +355,7 @@ void XS_Vector_push( pTHX_ CV* cv)
         SmokeType type( typeId.smoke, typeId.index );
 
         for( int i = 1; i < items; ++i ) {
-            PerlQt::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
+            PerlQt5::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
             Item* point = (Item*)marshalledArg.item().s_voidp;
             list->append( point );
         }
@@ -367,7 +391,7 @@ void XS_ValueVector_push( pTHX_ CV* cv)
         SmokeType type( typeId.smoke, typeId.index );
 
         for( int i = 1; i < items; ++i ) {
-            PerlQt::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
+            PerlQt5::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
             Item* point = (Item*)marshalledArg.item().s_voidp;
             vector->append( *point );
         }
@@ -405,9 +429,13 @@ void XS_ValueVector_pop( pTHX_ CV* cv)
                  break;
              }
         }
+#if 0 //PTZ200210	
         SmokeType type( typeId.smoke, typeId.index );
-        PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
+        PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );
         RETVAL = callreturn.var();
+#else
+	PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], RETVAL);
+#endif
 
         vector->pop_back();
         ST(0) = RETVAL;
@@ -444,9 +472,16 @@ void XS_Vector_shift( pTHX_ CV* cv)
                  break;
              }
         }
+#if 0 //PTZ200210	
         SmokeType type( typeId.smoke, typeId.index );
-        PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
+        PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );
         RETVAL = callreturn.var();
+#else
+	PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], RETVAL);
+#endif
+
+
+	
         vector->pop_front();
         ST(0) = RETVAL;
         sv_2mortal(ST(0));
@@ -483,9 +518,16 @@ void XS_ValueVector_shift( pTHX_ CV* cv)
                  break;
              }
         }
+#if 0 //PTZ200210	
         SmokeType type( typeId.smoke, typeId.index );
-        PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
+        PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );
         RETVAL = callreturn.var();
+#else
+	PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], RETVAL);
+#endif
+
+
+	
         vector->pop_front();
         if ( SvTYPE(SvRV(RETVAL)) == SVt_PVAV ) {
             for( int i=0; i < av_len((AV*)SvRV(RETVAL))+1; ++i ) {
@@ -528,7 +570,7 @@ void XS_Vector_unshift( pTHX_ CV* cv)
         SmokeType type( typeId.smoke, typeId.index );
 
         for( int i = items-1; i >= 1; --i ) {
-            PerlQt::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
+            PerlQt5::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
             Item* point = (Item*)marshalledArg.item().s_voidp;
             vector->insert( 0, point );
         }
@@ -564,7 +606,7 @@ void XS_ValueVector_unshift( pTHX_ CV* cv)
         SmokeType type( typeId.smoke, typeId.index );
 
         for( int i = items-1; i >= 1; --i ) {
-            PerlQt::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
+            PerlQt5::MarshallSingleArg marshalledArg( typeId.smoke, ST(i), type );
             Item* point = (Item*)marshalledArg.item().s_voidp;
             vector->insert( 0, *point );
         }
@@ -632,9 +674,12 @@ void XS_ValueVector_splice( pTHX_ CV* cv)
             // Must copy, because the remove() below will delete the return value
             // of at().
             retval[0].s_voidp = (void*)new Item(vector->at(firstIndex));
-            PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
-            
-            ST(j) = callreturn.var();
+	    //PTZ200210
+            //PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );            
+            //ST(j) = callreturn.var();
+	    PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], ST(j));
+
+	    
             if ( SvTYPE(SvRV(ST(j))) == SVt_PVAV ) {
                 for( int k=0; k < av_len((AV*)SvRV(ST(j)))+1; ++k ) {
                     SV* val = *(av_fetch((AV*)SvRV(ST(j)), k, 0));
@@ -648,7 +693,7 @@ void XS_ValueVector_splice( pTHX_ CV* cv)
         }
 
         for( int i = items-4; i >= 0; --i ) {
-            PerlQt::MarshallSingleArg marshalledArg( typeId.smoke, av_pop(args), type );
+            PerlQt5::MarshallSingleArg marshalledArg( typeId.smoke, av_pop(args), type );
             Item* point = (Item*)marshalledArg.item().s_voidp;
             vector->insert(firstIndex, *point);
         }
@@ -712,15 +757,21 @@ void XS_List_splice( pTHX_ CV* cv)
         Smoke::ModuleIndex mi = Smoke::classMap[ItemSTR];
         for( int i = firstIndex, j = 0; i < lastIndex; ++i, ++j ) {
             Smoke::StackItem retval[1];
-            retval[0].s_voidp = (void*)&list->at(firstIndex); 
-            PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
+            retval[0].s_voidp = (void*)&list->at(firstIndex);
+
+#if 0 //PTZ200210	
+            PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );
+	    ST(j) = callreturn.var();
+#else
+	    PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], ST(j));
+#endif
             
-            ST(j) = callreturn.var();
+
             list->removeAt(firstIndex);
         }
 
         for( int i = items-4; i >= 0; --i ) {
-            PerlQt::MarshallSingleArg marshalledArg( typeId.smoke, av_pop(args), type );
+            PerlQt5::MarshallSingleArg marshalledArg( typeId.smoke, av_pop(args), type );
             Item* point = (Item*)marshalledArg.item().s_voidp;
             list->insert(firstIndex, point);
         }
@@ -785,14 +836,16 @@ void XS_ValueList_splice( pTHX_ CV* cv)
         for( int i = firstIndex, j = 0; i < lastIndex; ++i, ++j ) {
             Smoke::StackItem retval[1];
             retval[0].s_voidp = (void*)&list->at(firstIndex); 
-            PerlQt::MethodReturnValue callreturn( typeId.smoke, retval, type );
-            
-            ST(j) = callreturn.var();
+
+	    //PerlQt5::MethodReturnValue callreturn( typeId.smoke, retval, type );            
+            //ST(j) = callreturn.var();
+	    PerlQt5::MethodCall::ReturnValue retvalMarshaller(typeId, &retval[0], ST(j));
+	    
             list->removeAt(firstIndex);
         }
 
         for( int i = items-4; i >= 0; --i ) {
-            PerlQt::MarshallSingleArg marshalledArg( typeId.smoke, av_pop(args), type );
+            PerlQt5::MarshallSingleArg marshalledArg( typeId.smoke, av_pop(args), type );
             Item* point = (Item*)marshalledArg.item().s_voidp;
             list->insert(firstIndex, *point);
         }
