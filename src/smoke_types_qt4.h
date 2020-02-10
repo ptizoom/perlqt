@@ -9,6 +9,7 @@ smoke classes easier
 
 #include "marshall.h"
 
+#if 0 || qt4_PTZ200120 //PTZ200121
 class SmokeType {
     // derived from _smoke and _id, but cached.  Index into types[] in smokedata.cpp
 
@@ -62,6 +63,12 @@ public:
         return !(a == b);
     }
 };
+#else
+using SmokeType = SmokePerl::SmokeType;
+
+#endif
+
+
 
 class SmokeClass {
     Smoke::Class *_c;
