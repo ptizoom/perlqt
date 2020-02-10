@@ -38,7 +38,9 @@ extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 extern Q_DECL_EXPORT QList<Smoke*> smokeList;
 extern Q_DECL_EXPORT QList<QString> arrayTypes;
 
-PerlQt::Binding binding;
+//PTZ200207 use  SmokePerl::SmokeManager::instance().getClassForPackage
+//SmokePerl::SmokeManager::instance().getBindingForSmoke(mi.smoke) ->className(mi.index)
+PerlQt5::Binding binding;
 QHash<Smoke*, PerlQtModule> perlqt_modules;
 
 // Global variables
@@ -1938,9 +1940,20 @@ XS(XS_qvariant_from_value) {
 
 
     smokeperl_object* reto = alloc_smokeperl_object(
-        true, qtcore_Smoke, qtcore_Smoke->idClass("QVariant").index, v);
-    const char* retclassname = perlqt_modules[reto->smoke].resolve_classname(reto);
-    SV* retval = set_obj_info( retclassname, reto );
+        true, qtcore_Smoke->idClass("QVariant"), v);
+    //PTZ200206 const char* retclassname = perlqt_modules[reto->smoke].resolve_classname(reto);
+    
+    //PTZ200206 SV* retval = set_obj_info( retclassname, reto );
+    //PTZ200206
+     std::string retclassname
+       (SmokePerl::SmokeManager::instance()
+	.getBindingForSmoke(reto->smoke())
+	->className(reto->classId.index)
+	);
+     SV* retval = set_obj_info(retclassname.c_str(), reto);
+    
+     //SV* retval = set_obj_info(nullptr, reto);
+
 
     ST(0) = retval;
     XSRETURN(1);

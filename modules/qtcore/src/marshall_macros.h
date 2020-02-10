@@ -118,7 +118,7 @@ void marshall_ItemList(Marshall *m) {
                     smokeperl_object *o = alloc_smokeperl_object(
                         false, mi.smoke, mi.index, p );
 
-                    const char* classname = perlqt_modules[o->smoke].resolve_classname(o);
+                    const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
 
                     obj = set_obj_info( classname, o );
                 }
@@ -252,9 +252,12 @@ void marshall_ValueListItem(Marshall *m) {
             AV* av = newAV();
             SV* avref = newRV_noinc((SV*)av);
 
-			Smoke::ModuleIndex mi = Smoke::findClass(ItemSTR);
-			const char * className = perlqt_modules[mi.smoke].binding->className(mi.index);
-
+	    //PTZ200206 perlqt ways to remove perlqt_modules
+	    Smoke::ModuleIndex mi = Smoke::findClass(ItemSTR);
+	    //const char * className = perlqt_modules[mi.smoke].binding->className(mi.index);
+	    //std::string className(mi.smoke->classes[mi.index].className);
+	    std::string className(SmokePerl::SmokeManager::instance().getBindingForSmoke(mi.smoke)->className(mi.index));
+	    
             for(int i=0; i < valuelist->size(); ++i) {
                 void *p = (void *) &(valuelist->at(i));
 

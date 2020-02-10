@@ -24,7 +24,7 @@
 //#include "handlers.h" // for install_handlers function
 #include "listclass_macros.h"
 
-extern PerlQt::Binding binding;
+extern PerlQt5::Binding binding;
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 extern "C" void init_qtcore_Smoke();
 extern Q_DECL_EXPORT QHash<Smoke*, PerlQtModule> perlqt_modules;
@@ -466,7 +466,7 @@ BOOT:
     init_qtcore_Smoke();
     smokeList << qtcore_Smoke;
 
-    binding = PerlQt::Binding(qtcore_Smoke);
+    binding = PerlQt5::Binding(qtcore_Smoke);
     PerlQtModule module = { "PerlQtCore", resolve_classname_qt, 0, &binding };
     perlqt_modules[qtcore_Smoke] = module;
 

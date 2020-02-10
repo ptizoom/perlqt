@@ -18,7 +18,7 @@ add_definitions( -DPERLQTDEBUG )
 set( CMAKE_CXX_FLAGS ${PERL_CXX_FLAGS} )
 
 set(perlqtcore_LIBRARY_SRCS
-    binding.cpp
+    #binding.cpp
     handlers.cpp
     marshall_types.cpp
     util.cpp
@@ -46,6 +46,7 @@ target_link_libraries(qtcore
     ${SMOKE_QTGUI_LIBRARY}
     ${SMOKE_QTNETWORK_LIBRARY}
     ${PERL_LIBS}
+    smokeperl
     )
 
 set_target_properties(qtcore PROPERTIES

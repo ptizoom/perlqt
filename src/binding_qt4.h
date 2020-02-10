@@ -7,18 +7,22 @@
 #define Q_DECL_EXPORT
 #endif
 
-namespace PerlQt {
-  //TODO:PTZ200104 use SmokePerlBinding instead ?
-class Q_DECL_EXPORT Binding : public SmokeBinding {
-public:
-    Binding();
-    Binding(Smoke* s);
-    void deleted(Smoke::Index /*classId*/, void* ptr);
-    bool callMethod(Smoke::Index method, void* ptr, Smoke::Stack args, bool isAbstract);
-    char* className(Smoke::Index classId);
-};
+namespace PerlQt5 {
+
+  //TODO:PTZ200104 using Binding = SmokePerl::SmokePerlBinding;
+  
+  class Q_DECL_EXPORT Binding : public SmokePerl::SmokePerlBinding {
+  public:
+    Binding(): SmokePerl::SmokePerlBinding() {}
+    Binding(Smoke* s): SmokePerl::SmokePerlBinding(s) {}
+    
+    virtual void deleted(Smoke::Index /*classId*/, void* cxxptr);
+    virtual bool callMethod(Smoke::Index method, void* ptr, Smoke::Stack args, bool isAbstract);
+    virtual char* className(Smoke::Index classId);
+  };
 
 }
 
-extern PerlQt::Binding binding;
+extern PerlQt5::Binding binding;
+
 

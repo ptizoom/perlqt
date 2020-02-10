@@ -22,6 +22,7 @@
 #include <QMetaObject>
 #include <QMetaMethod>
 #include <QVector>
+#if QT_VERSION < 0x050000 //PTZ200104  not in /qt5/
 #include <QtGui/QAbstractProxyModel>
 #include <QtGui/QSortFilterProxyModel>
 #include <QtGui/QDirModel>
@@ -29,7 +30,10 @@
 #include <QtGui/QProxyModel>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QStringListModel>
-
+#else
+#include <QtCore/QAbstractProxyModel>
+#include <QtCore/QItemSelectionRange>
+#endif
 #include <perlqtcore_util.h>
 
 #include <qtgui_smoke.h>
@@ -42,12 +46,22 @@ extern SV* sv_this;
 const char*
 resolve_classname_qtgui(smokeperl_object * o)
 {
-    return perlqt_modules[o->smoke].binding->className(o->classId);
+  //PTZ200207 use  SmokePerl::SmokeManager::instance().getClassForPackage
+//
+  std::string _s
+    (SmokePerl::SmokeManager::instance()
+     .getBindingForSmoke(o->smoke())
+     ->className(o->classId.index)
+     );
+  return _s.c_str();
+  
+  //PerlQt5::Binding
+  //return perlqt_modules[o->smoke()].binding->className(o->classId.index);
 }
 
 extern TypeHandler QtGui_handlers[];
 
-static PerlQt::Binding bindingqtgui;
+static PerlQt5::Binding bindingqtgui;
 
 DEF_LISTCLASS_FUNCTIONS(QItemSelection, QItemSelectionRange, QItemSelectionRange, Qt::ItemSelection)
 DEF_VECTORCLASS_FUNCTIONS(QPolygonF, QPointF, Qt::PolygonF)
@@ -101,7 +115,7 @@ BOOT:
     init_qtgui_Smoke();
     smokeList << qtgui_Smoke;
 
-    bindingqtgui = PerlQt::Binding(qtgui_Smoke);
+    bindingqtgui = PerlQt5::Binding(qtgui_Smoke);
 
     PerlQtModule module = { "PerlQtGui", resolve_classname_qtgui, 0, &bindingqtgui  };
     perlqt_modules[qtgui_Smoke] = module;
