@@ -66,8 +66,8 @@ ExternalProject_Add(ep_smokeqt
   DEPENDS ep_smokegenerator
   )
 #needs /usr/local/include/smoke
-ExternalProject_Get_property(ep_smokeqt INSTALL_DIR)
-message("build dir of ep_smokeqt = ${INSTALL_DIR}")
+ExternalProject_Get_property(ep_smokeqt INSTALL_DIR BINARY_DIR)
+message("build dir of ep_smokeqt = ${INSTALL_DIR} , ${BINARY_DIR}")
 #then include dir is temporaly...
 set(ep_smokeqt_INCLUDE_DIR  ${INSTALL_DIR}/include/smoke)
 list(PREPEND SMOKE_QTCORE_INCLUDE_DIR ${INSTALL_DIR}/include/smoke)

@@ -1,6 +1,8 @@
 xsubpp(qtgui.xs ${CMAKE_CURRENT_BINARY_DIR}/qtgui.cpp)
 
 include_directories(
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/modules/qtcore #PTZ200210 to change... when "invokeslot.h" in commun
     ${Qt5Gui_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PERL_INCLUDE_PATH}

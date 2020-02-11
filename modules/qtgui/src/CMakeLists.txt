@@ -1,5 +1,6 @@
 include_directories(
-    ${CMAKE_SOURCE_DIR}/modules/qtcore/src
+  #${CMAKE_SOURCE_DIR}/modules/qtcore #PTZ200210 to change... when "invokeslot.h" in commun
+  ${CMAKE_SOURCE_DIR}/modules/qtcore/src
     ${PERL_INCLUDE_PATH}
     #${Qt5Core_PRIVATE_INCLUDE_DIRS}
     ${QT_INCLUDES} )
