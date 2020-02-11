@@ -155,3 +155,37 @@ macro_display_feature_log()
 
 #install(EXPORT PerlQtExport DESTINATION ${CMAKE_INSTALL_PREFIX}/share/perlqt/cmake NAMESPACE PERLQT_)
 add_subdirectory(cmake)
+
+#https://stackoverflow.com/questions/9827208/run-a-shell-command-ctags-in-cmake-and-make
+# Add a top-level "tags" target which includes all files in both
+# the build and source versions of src/*.
+set_source_files_properties(tags PROPERTIES GENERATED true)
+add_custom_target(ctags
+    COMMAND ctags -R --c++-kinds=+p --fields=+iaS --extra=+q 
+        ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+    #COMMAND ln -sf ${CMAKE_CURRENT_BINARY_DIR}/tags ${CMAKE_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# ...but only make it a dependency of the project if the ctags program
+# is available, else it will fail to build on Windows.
+find_program(CTAGS_PATH ctags)
+if(CTAGS_PATH)
+    message(STATUS "Found ctags: ${CTAGS_PATH}")
+    #add_dependencies( tags)
+endif(CTAGS_PATH)
+
+set_source_files_properties(TAGS PROPERTIES GENERATED true)
+add_custom_target(TAGS
+    COMMAND find 
+      ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+      -regex "\".*\\.[cChH]\(pp\)?\"" -print
+      | etags -
+    VERBATIM
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# ...but only make it a dependency of the project if the ctags program
+# is available, else it will fail to build on Windows.
+find_program(ETAGS_PATH etags)
+if(ETAGS_PATH)
+    message(STATUS "Found etags: ${ETAGS_PATH}")
+endif(ETAGS_PATH)
