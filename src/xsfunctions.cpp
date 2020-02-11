@@ -11,6 +11,9 @@ XS(XS_AUTOLOAD) {
     dXSARGS;
     dXCPT;
     HV* stash = CvSTASH(cv);
+    if (!stash) { //PTZ200120 only during dev things can go pearshape.
+      croak("Internal error: Unable to resolve XS_AUTOLOAD with an empty CV stash");
+    }
     const char* package = HvNAME(stash);
     const char* methodName = SvPVX(cv);
     SV* self = ST(0);

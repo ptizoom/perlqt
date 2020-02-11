@@ -3,7 +3,12 @@
 use strict;
 use Config;
 use File::pushd;
- 
+
+use ExtUtils::MakeMaker qw($Verbose &WriteMakefile);
+use ExtUtils::Constant qw(WriteConstants);
+$ExtUtils::MakeMaker::Verbose=10;
+use ExtUtils::Mkbootstrap;
+
 my ($prefix, $sitearch, $qmake) = ($Config{prefix}, $Config{sitearch});
 my @cmakeArgs;
 foreach my $arg (@ARGV) {

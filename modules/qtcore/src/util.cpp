@@ -1,3 +1,5 @@
+
+
 // Include Qt4 headers first, to avoid weirdness that the perl headers cause
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QEvent>
@@ -32,10 +34,13 @@
 
 extern bool qRegisterResourceData(int, const unsigned char *, const unsigned char *, const unsigned char *);
 extern bool qUnregisterResourceData(int, const unsigned char *, const unsigned char *, const unsigned char *);
-
+//PTZ200207 should not use..
+//PTZ200206 qtcore_Smoke need to be hoocked to right instance... ie.  SmokePerl::SmokeManager::instance()
 // Standard smoke variables
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 extern Q_DECL_EXPORT QList<Smoke*> smokeList;
+
+//PTZ200207 should not use.. in qt5 , it is all HV .. no AV settings!
 extern Q_DECL_EXPORT QList<QString> arrayTypes;
 
 //PTZ200207 use  SmokePerl::SmokeManager::instance().getClassForPackage
@@ -382,6 +387,7 @@ QList<MocArgument*> getMocArguments(Smoke* smoke, const char * typeName, QList<Q
 // find a subroutine in that package to call.
 Q_DECL_EXPORT SV* getPointerObject(void* ptr) {
     if (PL_dirty) return 0;
+    //TODO:PTZ200207 find equi
     HV *hv = pointer_map;
     SV *keysv = newSViv((IV)ptr);
     STRLEN len;
@@ -1003,7 +1009,7 @@ pl_qFindChildren_helper(SV* parent, const QString &objectName, SV* re,
     }
     return;
 }
-
+ //PTZ200207 need replacing for qt5...XS(XS_QOBJECT_METAOBJECT) {XS(XS_QOBJECT_METACALL) {
 XS(XS_qobject_qt_metacast) {
     dXSARGS;
     SV* mythis=0;
@@ -1990,7 +1996,8 @@ XS(XS_qvariant_from_value) {
     XSRETURN(1);
 }
 
-XS(XS_AUTOLOAD) {
+//PTZ200205 it is complex. but I have already one
+XS(XS_AUTOLOAD_) {
     dXSARGS;
     PERL_SET_CONTEXT(PL_curinterp);
     // Figure out which package and method is being called, based on the
@@ -2339,188 +2346,200 @@ XS(XS_AUTOLOAD) {
     }
 }
 
-XS(XS_qt_metacall){
-    dXSARGS;
-    PERL_UNUSED_VAR(items);
-    PERL_SET_CONTEXT(PL_curinterp);
+//PTZ200210  use XS(XS_QOBJECT_METACALL) in /usr/src/perlqt5/modules/qtcore/perlqtmetaobject.cpp 266:                PerlQt5::InvokeSlot slot(method, selfSV, argv, (SV*)GvCV(gv));
+//using XS_qt_metacall =  PerlQt5::XS_QOBJECT_METACALL;
+// Call the super class's qt_metacall
+// XS(XS_qt_metacall){
+//     dXSARGS;
+//     PERL_UNUSED_VAR(items);
+//     PERL_SET_CONTEXT(PL_curinterp);
 
-    // Get my arguments off the stack
-    QObject* sv_this_ptr = (QObject*)sv_obj_info(sv_this)->ptr;
-    // This is an enum value, so it's stored as a scalar reference.
-    QMetaObject::Call _c = (QMetaObject::Call)SvIV(SvRV(ST(0)));
-    int _id = (int)SvIV(ST(1));
-    void** _a = (void**)sv_obj_info(ST(2))->ptr;
+//     // Get my arguments off the stack
+//     QObject* sv_this_ptr = (QObject*)sv_obj_info(sv_this)->ptr();
+//     // This is an enum value, so it's stored as a scalar reference.
+//     QMetaObject::Call _c = (QMetaObject::Call)SvIV(SvRV(ST(0)));
+//     int _id = (int)SvIV(ST(1));
+//     void** _a = (void**)sv_obj_info(ST(2))->ptr();
 
-    // Assume the target slot is a C++ one
-    smokeperl_object* o = sv_obj_info(sv_this);
-    Smoke::ModuleIndex nameId = o->smoke->idMethodName("qt_metacall$$?");
-    Smoke::ModuleIndex classIdx( o->smoke, o->classId );
-    Smoke::ModuleIndex meth = nameId.smoke->findMethod(classIdx, nameId);
-    if (meth.index > 0) {
-        Smoke::Method &m = meth.smoke->methods[meth.smoke->methodMaps[meth.index].method];
-        Smoke::ClassFn fn = meth.smoke->classes[m.classId].classFn;
-        Smoke::StackItem i[4];
-        i[1].s_enum = _c;
-        i[2].s_int = _id;
-        i[3].s_voidp = _a;
-        (*fn)(m.method, o->ptr, i);
-        int ret = i[0].s_int;
-        if (ret < 0) {
-            ST(0) = sv_2mortal(newSViv(ret));
-            XSRETURN(1);
-        }
-    } else {
-        // Should never happen..
-        croak( "Cannot find %s::qt_metacall() method\n", 
-               o->smoke->classes[o->classId].className );
-    }
+//     // Assume the target slot is a C++ one
+//     smokeperl_object* o = sv_obj_info(sv_this);
+//     Smoke::ModuleIndex nameId = o->smoke()->idMethodName("qt_metacall$$?");
+//     Smoke::ModuleIndex classIdx( o->smoke(), o->classId.index );
+//     Smoke::ModuleIndex meth = nameId.smoke->findMethod(classIdx, nameId);
+//     if (meth.index > 0) {
+//         Smoke::Method &m = meth.smoke->methods[meth.smoke->methodMaps[meth.index].method];
+//         Smoke::ClassFn fn = meth.smoke->classes[m.classId].classFn;
+//         Smoke::StackItem i[4];
+//         i[1].s_enum = _c;
+//         i[2].s_int = _id;
+//         i[3].s_voidp = _a;
+//         (*fn)(m.method, o->ptr(), i);
+//         int ret = i[0].s_int;
+//         if (ret < 0) {
+//             ST(0) = sv_2mortal(newSViv(ret));
+//             XSRETURN(1);
+//         }
+//     } else {
+//         // Should never happen..
+//         croak( "Cannot find %s::qt_metacall() method\n", 
+//                o->smoke()->classes[o->classId.index].className );
+//     }
 
-    // Get the current metaobject with a virtual call
-    const QMetaObject* metaobject = sv_this_ptr->metaObject();
+//     // Get the current metaobject with a virtual call
+//     const QMetaObject* metaobject = sv_this_ptr->metaObject();
 
-    // get method/property count
-    int count = 0;
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        count = metaobject->methodCount();
-    } else {
-        count = metaobject->propertyCount();
-    }
+//     // get method/property count
+//     int count = 0;
+//     if (_c == QMetaObject::InvokeMetaMethod) {
+//         count = metaobject->methodCount();
+//     } else {
+//         count = metaobject->propertyCount();
+//     }
 
-    if (_c == QMetaObject::InvokeMetaMethod) {
-        QMetaMethod method = metaobject->method(_id);
+//     if (_c == QMetaObject::InvokeMetaMethod) {
+//         QMetaMethod method = metaobject->method(_id);
 
-        // Signals are easy, just activate the meta object
-        // This code gets called when a cxx signal is connected to a signal
-        // defined in a perl package
-        if (method.methodType() == QMetaMethod::Signal) {
-#ifdef PERLQTDEBUG
-            if(do_debug && (do_debug & qtdb_signals))
-                fprintf( stderr, "In signal for %s::%s\n", metaobject->className()
-			 //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.
-			 //, method.signature()
-			 , method.methodSignature()
-			 );
-#endif
-            metaobject->activate(sv_this_ptr, metaobject, 0, _a);
-            // +1.  Id is 0 based, count is 1 based
-            ST(0) = sv_2mortal(newSViv(_id - count + 1));
-            XSRETURN(1);
-        }
-        else if (method.methodType() == QMetaMethod::Slot) {
+//         // Signals are easy, just activate the meta object
+//         // This code gets called when a cxx signal is connected to a signal
+//         // defined in a perl package
+//         if (method.methodType() == QMetaMethod::Signal) {
+// #ifdef PERLQTDEBUG
+//             if(do_debug && (do_debug & qtdb_signals))
+//                 fprintf( stderr, "In signal for %s::%s\n", metaobject->className()
+// 			 //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.
+// 			 //, method.signature()
+// 			 , method.methodSignature()
+// 			 );
+// #endif
+//             metaobject->activate(sv_this_ptr, metaobject, 0, _a);
+//             // +1.  Id is 0 based, count is 1 based
+//             ST(0) = sv_2mortal(newSViv(_id - count + 1));
+//             XSRETURN(1);
+//         }
+//         else if (method.methodType() == QMetaMethod::Slot) {
 
-            // Get the smoke to type id relationship args
-            QList<MocArgument*> mocArgs = getMocArguments(o->smoke, method.typeName(), method.parameterTypes());
+//             // Get the smoke to type id relationship args
+// 	  QList<MocArgument*> mocArgs = getMocArguments(o->smoke(), method.typeName(), method.parameterTypes());
 
-            // Find the name of the method being called
-	    //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.	    
-            QString name(method.methodSignature());
-            static QRegExp* rx = 0;
-            if (rx == 0) {
-                rx = new QRegExp("\\(.*");
-            }
-            name.replace(*rx, "");
+//             // Find the name of the method being called
+// 	    //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.	    
+//             QString name(method.methodSignature());
+//             static QRegExp* rx = 0;
+//             if (rx == 0) {
+//                 rx = new QRegExp("\\(.*");
+//             }
+//             name.replace(*rx, "");
+// 	    //InvokeSlot(const QMetaMethod& method, SV* self, void** a, SV* code);
+//             //PerlQt5::InvokeSlot slot( sv_this, name.toLatin1().data(), mocArgs, _a );
 
-            PerlQt::InvokeSlot slot( sv_this, name.toLatin1().data(), mocArgs, _a );
-            slot.next();
-        }
-    }
+// 	    PerlQt5::InvokeSlot slot( method
+// 				      //, name.toLatin1().data()
+// 				      , sv_this
+// 				      , mocArgs
+// 				      , _a  //PTZ200210 TODO... This->func in call  QObjectSlotDispatcher::impl QObjectSlotDispatcher* This = static_cast<QObjectSlotDispatcher*>(this_); QSlotObjectBase
+// 				      );
+//             slot.next();
+//         }
+//     }
 
-    // This should return -1 when we're the one that handled the call
-    ST(0) = sv_2mortal(newSViv(_id - count));
-    XSRETURN(1);
-}
+//     // This should return -1 when we're the one that handled the call
+//     ST(0) = sv_2mortal(newSViv(_id - count));
+//     XSRETURN(1);
+// }
 
-XS(XS_signal){
-    dXSARGS;
+//PTZ200210  use XS(XS_QTCORE_SIGNAL_CONNECT) 
 
-    smokeperl_object *o = sv_obj_info(sv_this);
-    QObject *qobj = (QObject*)o->smoke->cast( o->ptr, o->classId, o->smoke->idClass("QObject").index );
-    if(qobj->signalsBlocked()) XSRETURN_UNDEF;
+// XS(XS_signal){
+//     dXSARGS;
 
-    // Each xs method has an implied cv argument that holds the info for the
-    // called subroutine.  Use it to determine the name of the signal being
-    // called.
-    GV* gv = CvGV(cv);
-    QLatin1String signalname( GvNAME(gv) );
-#ifdef PERLQTDEBUG
-    if(do_debug && (do_debug & qtdb_signals)){
-        char* package = HvNAME( GvSTASH(gv) );
-        fprintf( stderr, "In signal call %s::%s\n", package, GvNAME(gv) );
-        if(do_debug & qtdb_verbose) {
-            fprintf(stderr, "with arguments (%s) ", SvPV_nolen(sv_2mortal(catArguments(SP - items + 1, items ))));
-            // See cop.h in the perl src for more info on Control ops
-            fprintf(stderr, "called at line %lu in %s\n", CopLINE(PL_curcop), GvNAME(CopFILEGV(PL_curcop))+2 );
-        }
-    }
-#endif
+//     smokeperl_object *o = sv_obj_info(sv_this);
+//     QObject *qobj = (QObject*)o->smoke()->cast( o->ptr(), o->classId, o->smoke()->idClass("QObject"));
+//     if(qobj->signalsBlocked()) XSRETURN_UNDEF;
 
-    // Get the current metaobject with a virtual call
-    const QMetaObject* metaobject = qobj->metaObject();
+//     // Each xs method has an implied cv argument that holds the info for the
+//     // called subroutine.  Use it to determine the name of the signal being
+//     // called.
+//     GV* gv = CvGV(cv);
+//     QLatin1String signalname( GvNAME(gv) );
+// #ifdef PERLQTDEBUG
+//     if(do_debug && (do_debug & qtdb_signals)){
+//         char* package = HvNAME( GvSTASH(gv) );
+//         fprintf( stderr, "In signal call %s::%s\n", package, GvNAME(gv) );
+//         if(do_debug & qtdb_verbose) {
+//             fprintf(stderr, "with arguments (%s) ", SvPV_nolen(sv_2mortal(catArguments(SP - items + 1, items ))));
+//             // See cop.h in the perl src for more info on Control ops
+//             fprintf(stderr, "called at line %lu in %s\n", CopLINE(PL_curcop), GvNAME(CopFILEGV(PL_curcop))+2 );
+//         }
+//     }
+// #endif
 
-    // Find the method's meta id.  This loop is easier than building the method
-    // signature to send to indexOfMethod, but makes it impossible to make 2
-    // signals with the same name but different signatures (arguments).
-    int index = -1;
-    QMetaMethod method;
-    bool methodFound = false;
-    for (index = metaobject->methodCount() - 1; index > -1; --index) {
-		if (metaobject->method(index).methodType() == QMetaMethod::Signal) {
-	    //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.	    		  
-			QString name(metaobject->method(index).methodSignature());
-            static QRegExp * rx = 0;
-			if (rx == 0) {
-				rx = new QRegExp("\\(.*");
-			}
-			name.replace(*rx, "");
+//     // Get the current metaobject with a virtual call
+//     const QMetaObject* metaobject = qobj->metaObject();
 
-			if (name == signalname) {
-                method = metaobject->method(index);
-                methodFound = true;
-                if ( method.parameterTypes().size() == items ) {
-                    break;
-                }
-			}
-		}
-    }
+//     // Find the method's meta id.  This loop is easier than building the method
+//     // signature to send to indexOfMethod, but makes it impossible to make 2
+//     // signals with the same name but different signatures (arguments).
+//     int index = -1;
+//     QMetaMethod method;
+//     bool methodFound = false;
+//     for (index = metaobject->methodCount() - 1; index > -1; --index) {
+// 		if (metaobject->method(index).methodType() == QMetaMethod::Signal) {
+// 	    //PTZ200107 qmetaobject.h 183:    // signature() has been renamed to methodSignature() in Qt 5.	    		  
+// 			QString name(metaobject->method(index).methodSignature());
+//             static QRegExp * rx = 0;
+// 			if (rx == 0) {
+// 				rx = new QRegExp("\\(.*");
+// 			}
+// 			name.replace(*rx, "");
 
-	if (!methodFound) {
-		XSRETURN_UNDEF;
-	}
-    // Have to check this twice to account for signal name overloading
-    if ( method.parameterTypes().size() != items ) {
-        // Incorrect arguments
-        COP* callercop = caller(2);
-        croak( "Wrong number of arguments in signal call %s::%s\n" 
-            "Got     : %s(%s)\n"
-            "Expected: %s\n"
-            "called at %s line %lu\n",
-            HvNAME( GvSTASH(gv) ),
-            GvNAME(gv),
-            GvNAME(gv),
-            SvPV_nolen(sv_2mortal(catArguments(SP - items + 1, items ))),
-            method.methodSignature(), //PTZ200107 qmetaobject.h 183:signature() has been renamed to methodSignature() in Qt 5.
-            GvNAME(CopFILEGV(callercop))+2,
-            CopLINE(callercop));
-    }
+// 			if (name == signalname) {
+//                 method = metaobject->method(index);
+//                 methodFound = true;
+//                 if ( method.parameterTypes().size() == items ) {
+//                     break;
+//                 }
+// 			}
+// 		}
+//     }
 
-    QList<MocArgument*> args = getMocArguments(o->smoke, method.typeName(), method.parameterTypes());
+// 	if (!methodFound) {
+// 		XSRETURN_UNDEF;
+// 	}
+//     // Have to check this twice to account for signal name overloading
+//     if ( method.parameterTypes().size() != items ) {
+//         // Incorrect arguments
+//         COP* callercop = caller(2);
+//         croak( "Wrong number of arguments in signal call %s::%s\n" 
+//             "Got     : %s(%s)\n"
+//             "Expected: %s\n"
+//             "called at %s line %lu\n",
+//             HvNAME( GvSTASH(gv) ),
+//             GvNAME(gv),
+//             GvNAME(gv),
+//             SvPV_nolen(sv_2mortal(catArguments(SP - items + 1, items ))),
+//             method.methodSignature(), //PTZ200107 qmetaobject.h 183:signature() has been renamed to methodSignature() in Qt 5.
+//             GvNAME(CopFILEGV(callercop))+2,
+//             CopLINE(callercop));
+//     }
 
-    SV* retval = sv_2mortal(newSV(0));
+//     QList<MocArgument*> args = getMocArguments(o->smoke(), method.typeName(), method.parameterTypes());
 
-    // Our args here:
-    // qobj: Whoever is emitting the signal, cast to a QObject*
-    // index: The index of the current signal in QMetaObject's array of sig/slots
-    // items: The number of arguments we are calling with
-    // args: A QList, whose length is items + 1, that tell us how to convert the args to ones Qt5 likes
-    // SP: ...not sure if this is correct.  If items=0, we'll pass sp+1, which
-    // should be out of bounds.  But it doesn't matter, since the signal won't
-    // do anything with those.
-    // retval: Will (at some point, maybe) get populated with the return value from the signal.
-    PerlQt::EmitSignal signal(qobj, metaobject, index, items, args, SP - items + 1, retval);
-    signal.next();
+//     SV* retval = sv_2mortal(newSV(0));
 
-    // TODO: Handle signal return value
-}
+//     // Our args here:
+//     // qobj: Whoever is emitting the signal, cast to a QObject*
+//     // index: The index of the current signal in QMetaObject's array of sig/slots
+//     // items: The number of arguments we are calling with
+//     // args: A QList, whose length is items + 1, that tell us how to convert the args to ones Qt5 likes
+//     // SP: ...not sure if this is correct.  If items=0, we'll pass sp+1, which
+//     // should be out of bounds.  But it doesn't matter, since the signal won't
+//     // do anything with those.
+//     // retval: Will (at some point, maybe) get populated with the return value from the signal.
+//     PerlQt5::EmitSignal signal(qobj, metaobject, index, items, args, SP - items + 1, retval);
+//     signal.next();
+
+//     // TODO: Handle signal return value
+// }
 
 XS(XS_this) {
     dXSARGS;

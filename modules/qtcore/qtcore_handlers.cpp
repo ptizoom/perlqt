@@ -65,7 +65,7 @@ void marshall_QString(SmokePerl::Marshall* m) {
             mystr = qstringFromPerlString( sv );
 
             m->item().s_voidp = (void*)mystr;
-            m->next();
+            m->next(); //TODO:PTZ200207 check this next, seems too early to me!
 
             if (!m->type().isConst() && !SvREADONLY(sv) && mystr != 0) {
                 sv_setsv(sv, perlstringFromQString(mystr));

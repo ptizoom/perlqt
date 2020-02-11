@@ -88,6 +88,8 @@ Object* Object::fromSV(SV* sv) {
 }
 
 SV* Object::wrap() {
+  //PTZ200207 check set_obj_info() it has array incorporated  arrayTypes. check for AV
+  //  blessing is adhoc needs class name.
     HV* hv = newHV();
     SvREFCNT(hv) = 0;
     sv = newRV_noinc((SV*)hv);

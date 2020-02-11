@@ -46,6 +46,8 @@ ExternalProject_Add(ep_smokegenerator
   #GIT_REPOSITORY git://anongit.kde.org/smokegen.git
   #GIT_BRANCH clang clang_PTZ191127
   SOURCE_DIR ${_src_d}
+  #INSTALL_COMMAND make install
+  #STEP_TARGETS  install
   BUILD_BYPRODUCTS smokegen smoke.h
   )
 
@@ -64,6 +66,8 @@ ExternalProject_Add(ep_smokeqt
     qtquick_smoke.h         qtsql_smoke.h
     qtwebchannel_smoke.h  qtwidgets_smoke.h
   DEPENDS ep_smokegenerator
+  #INSTALL_COMMAND make install
+  #STEP_TARGETS  install
   )
 #needs /usr/local/include/smoke
 ExternalProject_Get_property(ep_smokeqt INSTALL_DIR BINARY_DIR)
