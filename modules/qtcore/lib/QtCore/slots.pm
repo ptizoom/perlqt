@@ -10,6 +10,8 @@ use warnings;
 use Carp;
 use QtCore;
 use Scalar::Util qw(looks_like_number);
+use PerlQt5::QtCore;
+use PerlQt5::QtCore::Slot;
 
 our $VERSION = 0.60;
 
@@ -28,7 +30,11 @@ sub import {
         return Qt::_internal::getMetaObject($caller);
     } unless defined &{ "${caller}::metaObject" };
 
-    Qt::_internal::installqt_metacall( $caller ) unless defined &{$caller."::qt_metacall"};
+ 
+    my $_metaObject = &{ "${caller}::metaObject" } ();
+    
+
+
 
     my $public = 1;
 
@@ -39,6 +45,10 @@ sub import {
         my $fullslotname = $slots[$i];
         my $slotargs = $slots[$i+1];
 
+	#PTZ200313 does everything.... !
+	&PerlQt5::QtCore::_internal::addSlot($_metaObject, $fullslotname, $slotargs);
+
+	#PTZ200317 might not be nescessary ?
         if ( exists $publicprivate{$fullslotname} &&
             looks_like_number( $slotargs ) &&
             $slotargs > 0 ) {
@@ -71,7 +81,16 @@ sub import {
         };
 
         push @{$meta->{slots}}, $slot;
+	#PTZ200317 do we need the above...? MOC is not done	
     }
+       #PTZ200313     Qt::_internal::installqt_metacall( $caller ) unless defined &{$caller."::qt_metacall"};
+    #need metaobject...
+    {
+    #	my $meta_object = &{ "${caller}::metaObject" } ();
+    	&Qt::_internal::installqt_metacall($meta_object);
+	croak( ${caller} . ":: metaObject() has not been declared by ...::addSlot ");
+    } unless defined &{$caller."::qt_metacall"};
+
 }
 
 1;

@@ -3,12 +3,18 @@ package Qt::base;
 use strict;
 use warnings;
 
+use SmokePerl;
+use PerlQt5::QtCore;
+
+#PTZ20032  is has to be SmokePerl::Method;;new
 sub new {
     # Any direct calls to the 'NEW' function will bypass this code.  It's
     # called that way in subclass constructors, thus setting the 'this' value
     # for that package.
 
     # Store whatever current 'this' value we've got
+    #PTZ200321 that is installthis(__PACKAGE__) mapped to XS_this,
+    #but really should be an SmokePerl::...::instance()... !!
     my $packageThis = Qt::this();
     # Create the object, overwriting the 'this' value
     shift->NEW(@_);
@@ -35,14 +41,20 @@ sub tr {
     return Qt::qApp()->translate( $context, @_ );
 }
 
+#bypass Qt::this
 sub getPointer {
     my ( $self ) = @_;
-    $self = Qt::this() if !defined $self;
-    return Qt::_internal::sv_to_ptr( $self );
+    return &SmokePerl::getCppPointer($self); #aka SmokePerl::Object::fromSV(sv)->value;
+
+    
+    #$self = Qt::this() if !defined $self;
+    #return Qt::_internal::sv_to_ptr( $self );
 }
 
 package Qt::base::_overload;
 use strict;
+
+
 
 no strict 'refs';
 use overload
@@ -797,6 +809,9 @@ use strict;
 use warnings;
 use Scalar::Util qw( blessed );
 use List::MoreUtils qw( any );
+#PTZ200321
+use PerlQt5::QtCore;
+use base qw(PerlQt5::QtCore::_internal);
 
 # These 2 hashes provide lookups from a perl package name to a smoke
 # classid, and vice versa
@@ -1260,19 +1275,21 @@ sub findAnyPossibleMethod {
     return map { findMethod( $classname, $_ ) } @mungedMethods;
 }
 
-sub init_class {
+
+#PTZ200327 defined in QtCore::BOOT by ...SmokePerl::SmokeManager::instance().addSmokeModule(qtcore_Smoke, "Qt");
+sub init_class_ {
     my ($class, $cxxClassName) = @_;
 
     my $perlClassName = $class->normalize_classname($cxxClassName);
     my ($classId, $smokeId) = findClass($cxxClassName);
     my $moduleId = [$smokeId, $classId];
 
-    my @isa;
-    if ( $classId ) {
+    my @isa; #PTZ200321 this has to be 
+    if ( $classId ) {#TODO::PTZ200327 obsolete....use internals.
         # Save the association between this perl package and the cxx classId.
-        $package2classId{$perlClassName} = $moduleId;
-        my $moduleIdBitwise = ($classId<<8)+$smokeId;
-        $classId2package{$moduleIdBitwise} = $perlClassName;
+        #$package2classId{$perlClassName} = $moduleId;
+        #my $moduleIdBitwise = ($classId<<8)+$smokeId;
+        #$classId2package{$moduleIdBitwise} = $perlClassName;
 
         # Define the inheritance array for this class.
         @isa = getIsa($moduleId);
@@ -1302,30 +1319,33 @@ sub init_class {
 
 #TODOPTZ200119
 #Subroutine Qt::GlobalSpace::_UTOLOAD redefined at /usr/src/perlqt5/bld/blib/lib/QtCore.pm line 1304.
-#Subroutine  Qt::GlobalSpace::_UTOLOAD redefined at /usr/src/perlqt5/bld/blib/lib/QtCore.pm line 1304.
     foreach my $sp ('', ' ') {
         my $where = $sp . $perlClassName;
+	#instanciate $perlClassName::_UTOLOAD ~  XS_AUTOLOAD
         installautoload($where)
 	    #PTZ200119
-	    unless(defined &{"$perlClassName\::_UTOLOAD"});
+	    #unless(defined &{"$perlClassName\::_UTOLOAD"});
+	    unless(defined &{"$where\::_UTOLOAD"});
         # Putting this in one package gives XS_AUTOLOAD one spot to look for
         # the autoload variable
         package Qt::AutoLoad;
+	# XS_AUTOLOAD with an empty CV
         my $autosub = \&{$where . '::_UTOLOAD'};
         Qt::_internal::installSub( $where.'::AUTOLOAD', sub{&$autosub} );
     }
 
-    installSub("$perlClassName\::NEW", sub {
+    #PTZ200326 do not want that!
+    installSub("$perlClassName\::NEW_", sub {
         # Removes $perlClassName from the front of @_
         my $perlClassName = shift;
-
+	#
         # If we have a cxx classname that's in some other namespace, like
         # QTextEdit::ExtraSelection, remove the first bit.
         $cxxClassName =~ s/.*://;
         $Qt::AutoLoad::AUTOLOAD = "$perlClassName\::$cxxClassName";
         my $_utoload = \&{"$perlClassName\::_UTOLOAD"};
         setThis( bless &$_utoload, " $perlClassName" );
-    }) unless(defined &{"$perlClassName\::NEW"});
+    }) unless(defined &{"$perlClassName\::NEW_"});
 
     # Make the constructor subroutine
     installSub($perlClassName, sub {
@@ -1401,17 +1421,31 @@ sub init_enum {
         @{arrayByName("${enumName}::ISA")} = ('Qt::enum::_overload');
     }
 }
-
+#PTZ200322 not nescessary? clutter memeory  as not all is used in a program!
+# hit on QtCore::BEGIN
 # Args: none
 # Returns: none
 # Desc: sets up each class
-sub init {
-    $Qt::_internal::vectorTypes{'Qt::XmlStreamAttributes'} = undef;
-    my $classes = getClassList();
-    Qt::_internal->init_class($_) for(@$classes);
+#PTZ200327 void SmokeManager::addSmokeModule(Smoke* smoke, const std::string& nspace)
+# actually sets it all
 
-    my $enums = getEnumList();
-    Qt::_internal->init_enum($_) for(@$enums);
+
+
+sub init {
+    #PTZ200327 ?!
+    $Qt::_internal::vectorTypes{'Qt::XmlStreamAttributes'} = undef;
+
+#PTZ200327 void SmokeManager::addSmokeModule(Smoke* smoke, const std::string& nspace)
+# actually sets it all
+    # we could do a second pass!
+    #done in  QtCore.xs::BOOT ..
+    #    SmokePerl::SmokeManager::instance().addSmokeModule(_Smoke, "Qt");
+    
+    #my $classes = getClassList();    
+    #Qt::_internal->init_class($_) for(@$classes);
+
+    #my $enums = getEnumList();
+    #Qt::_internal->init_enum($_) for(@$enums);
 }
 
 sub makeMetaData {
@@ -1607,23 +1641,35 @@ sub isa {
 
 package QtCore;
 
-use 5.008006;
+#PTZ2002131 use 5.008006;
 use strict;
 use warnings;
 
 require Exporter;
 require XSLoader;
 
-our $VERSION = '5.0.0';
+use PerlQt5::QtCore;
+#use PerlQt5::QtCore qw(SLOT);
+#PTZ200213 init_qtcore_Smoke() first dl...PerlQt5::QtCore.so
+use base qw(PerlQt5::QtCore);
+#use SmokePerl;
+
+our $VERSION = '3.0.0';
 
 our @EXPORT = qw( SIGNAL SLOT emit CAST qApp );
 
+
+#PTZ200213
 QtCore::loadModule(__PACKAGE__, $VERSION);
 
-Qt::_internal::init();
+#PTZ200213
+#PTZ200323 Qt::_internal::init();
 
-sub SIGNAL ($) { '2' . $_[0] }
-sub SLOT ($) { '1' . $_[0] }
+
+#PTZ2002131 
+#sub SIGNAL ($) { '2' . $_[0] }
+#sub SLOT ($) { '1' . $_[0] }
+sub SLOT($) {&PerlQt5::QtCore::SLOT}
 sub emit (@) { return pop @_ }
 sub CAST ($$) {
     my( $var, $class ) = @_;
@@ -1638,19 +1684,24 @@ sub CAST ($$) {
     }
 }
 
-sub import { goto &Exporter::import }
-
-sub qApp {
-    &Qt::qApp
+sub import { #PTZ200313 goto &Exporter::import
+    goto &PerlQt5::QtCore::import;
 }
+
+sub qApp {&Qt::qApp}
 
 sub loadModule {
     my ($module, $version) = @_;
     if ( $^O eq 'MSWin32' ) {
-        $module = 'Perl' . $module;
+	$module = 'Perl' . $module;
     }
     XSLoader::load($module, $version);
 }
+
+
+package Qt::QObject;
+use PerlQt5::QtCore;
+use base qw(PerlQt5::QtCore::QObject);
 
 
 package Qt;
@@ -1658,9 +1709,15 @@ package Qt;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 # Called in the DESTROY method for all QObjects to see if they still have a
 # parent, and avoid deleting them if they do.
+#PTZ200323 then call "PerlQt5::QtCore::QObject::DESTROY", XS_QOBJECT_DESTROY, ?
+#
 sub Qt::Object::ON_DESTROY {
+
+    #say Dumper "in ON_DESTROY ", \@_;
     package Qt::_internal;
     my $parent = Qt::this()->parent;
     if( defined $parent ) {
@@ -1881,6 +1938,9 @@ sub Uchar {
 }
 
 1;
+
+
+
 
 package Qt::String;
 

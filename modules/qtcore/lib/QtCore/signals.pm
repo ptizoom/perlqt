@@ -11,63 +11,75 @@ use Carp;
 use QtCore;
 use Scalar::Util qw(looks_like_number);
 
-our $VERSION = 0.60;
+#PTZ200214
+use base qw(PerlQt5::QtCore::Signal);
+
+our $VERSION = 1.00;
 
 sub import {
     no strict 'refs';
     my $self = shift;
     croak "Odd number of arguments in signal declaration" if @_%2;
     my $caller = $self eq 'QtCore::signals' ? (caller)[0] : $self;
-    my(@signals) = @_;
-    my $meta = \%{ $caller . '::META' };
+    my (@signals) = @_;
+    #PTZ200214 really not sure PerlQt5::QtCore::Signal new is the call
+    #//PTZ200214 PerlQt5::QtCore::Signal->new ($class, $instance, $name, $code) = @_;
 
-    # The perl metaObject holds info about signals and slots, inherited
-    # sig/slots, etc.  This is what actually causes perl-defined sig/slots to
-    # be executed.
-    *{ "${caller}::metaObject" } = sub {
-        return Qt::_internal::getMetaObject($caller);
-    } unless defined &{ "${caller}::metaObject" };
+    $self->SUPER::new($caller, @signals[0,1]);
+    $self->SUPER::new($caller, @signals[2,3]);
 
-    # This makes any call to the signal name call XS_SIGNAL
-    Qt::_internal::installqt_metacall( $caller ) unless defined &{$caller."::qt_metacall"};
 
-    my $public = 1;
+ #PTZ200313 to be checked?
+    # my $meta = \%{ $caller . '::META' };
+    # # The perl metaObject holds info about signals and slots, inherited
+    # # sig/slots, etc.  This is what actually causes perl-defined sig/slots to
+    # # be executed.
+    # *{ "${caller}::metaObject" } = sub {
+    #     return Qt::_internal::getMetaObject($caller);
+    # } unless defined &{ "${caller}::metaObject" };
+    # # This makes any call to the signal name call XS_SIGNAL
+    # Qt::_internal::installqt_metacall( $caller ) unless defined &{$caller."::qt_metacall"};
 
-    my %publicprivate;
-    @publicprivate{qw(public private)} = undef;
+    # my $public = 1;
+    # my %publicprivate;
+    # @publicprivate{qw(public private)} = undef;
 
-    for ( my $i = 0; $i < @signals; $i += 2 ) {
-        my $signalname = $signals[$i];
-        my $signalargs = $signals[$i+1];
+    # for ( my $i = 0; $i < @signals; $i += 2 ) {
+    #     my $signalname = $signals[$i];
+    #     my $signalargs = $signals[$i+1];
 
-        if ( exists $publicprivate{$signalname} &&
-            looks_like_number( $signalargs ) &&
-            $signalargs > 0 ) {
-            if ( $signalname eq 'public' ) {
-                $public = 1;
-            }
-            else {
-                $public = 0;
-            }
-            next;
-        }
+    #     if ( exists $publicprivate{$signalname} &&
+    #         looks_like_number( $signalargs ) &&
+    #         $signalargs > 0 ) {
+    #         if ( $signalname eq 'public' ) {
+    #             $public = 1;
+    #         }
+    #         else {
+    #             $public = 0;
+    #         }
+    #         next;
+    #     }
 
-        # Build the signature for this signal
-        my $signature = join '', ("$signalname(", join(',', @{$signalargs}), ')');
+    #     # Build the signature for this signal
+    #     my $signature = join '', ("$signalname(", join(',', @{$signalargs}), ')');
 
-        # Normalize the signature, might not be necessary
-        $signature = Qt::MetaObject::normalizedSignature(
-           $signature )->data();
+    #     # Normalize the signature, might not be necessary
+    #     $signature = Qt::MetaObject::normalizedSignature(
+    #        $signature )->data();
 
-        my $signal = {
-            name => $signalname,
-            signature => $signature,
-            public => $public,
-        };
+    #     my $signal = {
+    #         name => $signalname,
+    #         signature => $signature,
+    #         public => $public,
+    #     };
 
-        push @{$meta->{signals}}, $signal;
-        Qt::_internal::installsignal("${caller}::$signalname") unless defined &{ "${caller}::$signalname" };
-    }
+    #     push @{$meta->{signals}}, $signal;
+    #     Qt::_internal::installsignal("${caller}::$signalname") unless defined &{ "${caller}::$signalname" };
+    # }
+    # }
 }
 
 1;
+
+
+__END__

@@ -27,16 +27,17 @@ use base qw(Qt::_internal);
 #use Devel::Peek qw( SvREFCNT_inc );
 use Devel::Peek qw( ); BEGIN { *SvREFCNT_inc = \&Devel::Peek::SvREFCNT_inc; }
 
-sub init {
-    @Qt::_internal::vectorTypes{qw(Qt::Polygon Qt::PolygonF Qt::ItemSelection)}
-        = undef;
-    foreach my $c ( @{getClassList()} ) {
-        QtGui::_internal->init_class($c);
-    }
-    foreach my $e ( @{getEnumList()} ) {
-        QtGui::_internal->init_enum($e);
-    }
-}
+#PTZ200224 use init_qtgui_Smoke() instead?
+ sub init {
+#     @Qt::_internal::vectorTypes{qw(Qt::Polygon Qt::PolygonF Qt::ItemSelection)}
+#         = undef;
+#     foreach my $c ( @{getClassList()} ) {
+#         QtGui::_internal->init_class($c);
+#     }
+#     foreach my $e ( @{getEnumList()} ) {
+#         QtGui::_internal->init_enum($e);
+#     }
+ }
 
 package QtGui;
 
@@ -44,13 +45,18 @@ use strict;
 use warnings;
 use QtCore;
 
+#use PerlQt5::QtGui; #PTZ200311 ?
+use base qw(PerlQt5::QtGui);
+#use PerlQt5::QtCore;
+
 require XSLoader;
 
-our $VERSION = '0.96';
+our $VERSION = '1.00';
 
-QtCore::loadModule('QtGui', $VERSION);
+#QtCore::loadModule('QtGui', $VERSION);
+PerlQt5::QtGui::loadModule(__PACKAGE__, $VERSION);
 
-QtGui::_internal::init();
+#QtGui::_internal::init();
 
 package Qt;
 
