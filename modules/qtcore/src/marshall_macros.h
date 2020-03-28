@@ -111,23 +111,27 @@ void marshall_ItemList(Marshall *m) {
             SV* avref = newRV_noinc((SV*)av);
 
             Smoke::ModuleIndex mi = Smoke::findClass(ItemSTR);
-
+	    std::string classname(SmokePerl::SmokeManager::instance()
+				  .getBindingForSmoke(mi.smoke)
+				  ->className(mi.index));
             for (int i=0; i < cpplist->size(); ++i) {
                 void *p = (void *) cpplist->at(i);
-
-                if (m->item().s_voidp == 0) {
-                    sv_setsv(m->var(), &PL_sv_undef);
-                    break;
-                }
+		//PTZ200310 need to lock instead...
+                // if (m->item().s_voidp == 0) {
+                //     sv_setsv(m->var(), &PL_sv_undef);
+                //     break;
+                // }
 
                 SV* obj = getPointerObject(p);
                 if (!obj || !SvOK(obj) ) {
-                    smokeperl_object *o = alloc_smokeperl_object(
-                        false, mi, p );
-
-                    const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
-
-                    obj = set_obj_info( classname, o );
+		  smokeperl_object *o
+		    = alloc_smokeperl_object(false, mi, p);
+#if 0 || qt4_PTZ200120 //PTZ200311
+		  const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
+#else
+		  //PTZ200311 not sure at all const char* classname = o->smoke().className(mi);
+#endif
+		  obj = set_obj_info(classname.c_str(), o);
                 }
                 else {
                     // There's this weird problem where if we just return obj,

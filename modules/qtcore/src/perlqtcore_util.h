@@ -82,7 +82,8 @@ void mapPointer(SV *obj, smokeperl_object *o, HV *hv, Smoke::Index classId,
 
 SV* package_classId( const char *package );
 
-const char* resolve_classname_qt( smokeperl_object* o );
+//PTZ200312 in 
+//const char* resolve_classname_qt( smokeperl_object* o );
 
 void* sv_to_ptr(SV* sv);
 
@@ -116,10 +117,12 @@ XS(XS_qdatastream_readrawdata);
 XS(XS_qvariant_value);
 XS(XS_qvariant_from_value);
 
+//PTZ200220 not really anymore
+//PTZ200314 not now bernat...
 XS(XS_AUTOLOAD);
-XS(XS_qt_metacall);
-XS(XS_signal);
-XS(XS_super);
+//XS(XS_qt_metacall); //aka XS(XS_QOBJECT_METACALL)
+//XS(XS_signal); // aka ? XS(XS_QTCORE_SIGNAL_CONNECT)
+//XS(XS_super);
 XS(XS_this);
 
 #endif

@@ -3,7 +3,7 @@
 
 #include <marshall_types.h>
 
-extern QList<Smoke*> smokeList;
+//PTZ200322 extern QList<Smoke*> smokeList;
 
 template <class ItemVector, class Item, const char *ItemSTR, const char* PerlName>
 void XS_Vector_at( pTHX_ CV* cv)
@@ -44,6 +44,10 @@ void XS_Vector_at( pTHX_ CV* cv)
         Smoke::StackItem retval[1];
         retval[0].s_voidp = (void*)vector->at(index);
         Smoke::ModuleIndex typeId;
+
+	//TODO::PTZ200310 higly inneficient
+	QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+	
         foreach( Smoke* smoke, smokeList ) {
              if( ( typeId.index = smoke->idType(ItemSTR) ) ) {
                  typeId.smoke = smoke;
@@ -93,6 +97,9 @@ void XS_ValueVector_at( pTHX_ CV* cv)
         Smoke::StackItem retval[1];
         retval[0].s_voidp = (void*)&vector->at(index);
         Smoke::ModuleIndex typeId;
+	//TODO::PTZ200310 higly inneficient
+	QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+
         foreach( Smoke* smoke, smokeList ) {
              if( ( typeId.index = smoke->idType(ItemSTR) ) ) {
                  typeId.smoke = smoke;
@@ -273,6 +280,8 @@ void XS_ValueVector_delete( pTHX_ CV* cv)
         retval[0].s_voidp = (void*)new Item(vector->at(index));
 
         vector->replace( index, Item() );
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -345,7 +354,9 @@ void XS_Vector_push( pTHX_ CV* cv)
             XSRETURN_UNDEF;
         ItemList* list = (ItemList*)o->ptr();
 
-        Smoke::ModuleIndex typeId;
+     //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+       Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
             if( ( typeId.index = smoke->idType(ItemSTR) ) ) {
                 typeId.smoke = smoke;
@@ -380,6 +391,8 @@ void XS_ValueVector_push( pTHX_ CV* cv)
         if (!o || !o->ptr())
             XSRETURN_UNDEF;
         ItemVector* vector = (ItemVector*)o->ptr();
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -421,6 +434,8 @@ void XS_ValueVector_pop( pTHX_ CV* cv)
 
         Smoke::StackItem retval[1];
         retval[0].s_voidp = (void*)&vector->last();
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -465,7 +480,11 @@ void XS_Vector_shift( pTHX_ CV* cv)
 
         Smoke::StackItem retval[1];
         retval[0].s_voidp = vector->first();
-        Smoke::ModuleIndex typeId;
+
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+
+	Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
              if( ( typeId.index = smoke->idType(ItemSTR) ) ) {
                  typeId.smoke = smoke;
@@ -511,6 +530,10 @@ void XS_ValueVector_shift( pTHX_ CV* cv)
         // Must copy, because the pop_front() below will delete the return value
         // of at().
         retval[0].s_voidp = (void*)new Item(vector->first());
+
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+	
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
              if( ( typeId.index = smoke->idType(ItemSTR) ) ) {
@@ -559,6 +582,8 @@ void XS_Vector_unshift( pTHX_ CV* cv)
         if (!o || !o->ptr())
             XSRETURN_UNDEF;
         ItemVector* vector = (ItemVector*)o->ptr();
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -597,6 +622,10 @@ void XS_ValueVector_unshift( pTHX_ CV* cv)
         ItemVector* vector = (ItemVector*)o->ptr();
 
         Smoke::ModuleIndex typeId;
+
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+	
         foreach( Smoke* smoke, smokeList ) {
             if( ( typeId.index = smoke->idType(ItemSTR) ) ) {
                 typeId.smoke = smoke;
@@ -659,6 +688,8 @@ void XS_ValueVector_splice( pTHX_ CV* cv)
         }
 
         EXTEND(SP, length);
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -745,6 +776,8 @@ void XS_List_splice( pTHX_ CV* cv)
         }
 
         EXTEND(SP, length);
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
 
         Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
@@ -824,7 +857,9 @@ void XS_ValueList_splice( pTHX_ CV* cv)
 
         EXTEND(SP, length);
 
-        Smoke::ModuleIndex typeId;
+      //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+      Smoke::ModuleIndex typeId;
         foreach( Smoke* smoke, smokeList ) {
             if( ( typeId.index = smoke->idType(ItemSTR) ) ) {
                 typeId.smoke = smoke;

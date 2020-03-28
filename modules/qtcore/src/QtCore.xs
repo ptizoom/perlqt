@@ -7,7 +7,9 @@
 
 //util.h brings in all the required Qt4 headers.  This has to happen before the
 //perl stuff below
+
 #include "perlqtcore_util.h"
+
 
 //TODO:PTZ20200107  mostly, this shity header is called util.h which could be confused by /usr/lib/x86_64-linux-gnu/perl/5.30/CORE/util.h...
 
@@ -66,11 +68,14 @@ findMethod( classname, methodname )
         char* classname
         char* methodname
     PPCODE:
-        QList<Smoke::ModuleIndex> milist;
-        if ( strcmp( classname, "QGlobalSpace" ) == 0 ) {
-            // All modules put their global functions in "QGlobalSpace".  So we
-            // have to use each smoke object to look for this method.
-            for (int i = 0; i < smokeList.size(); ++i) {
+        QVector< Smoke::ModuleIndex> milist;
+ 	  //PTZ200310
+	  QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+       if ( strcmp( classname, "QGlobalSpace" ) == 0 ) {
+          // All modules put their global functions in "QGlobalSpace".  So we
+          // have to use each smoke object to look for this method.
+	  
+          for (int i = 0; i < smokeList.size(); ++i) {
                 Smoke::ModuleIndex mi = smokeList.at(i)->findMethod(classname, methodname);
                 if( mi.smoke ) {
                     // Found a result, add it to the return
@@ -123,6 +128,7 @@ SV*
 getClassList()
     CODE:
         AV* av = newAV();
+
         for (int i = 1; i <= qtcore_Smoke->numClasses; i++) {
             av_push(av, newSVpv(qtcore_Smoke->classes[i].className, 0));
         }
@@ -154,6 +160,10 @@ getIsa( moduleId )
         AV* av = (AV*)SvRV(moduleId);
         SV** smokeId = av_fetch(av, 0, 0);
         SV** classId = av_fetch(av, 1, 0);
+
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+
         Smoke* smoke = smokeList[SvIV(*smokeId)];
         Smoke::Index *parents =
             smoke->inheritanceList +
@@ -170,6 +180,10 @@ getTypeNameOfArg( smokeId, methodId, argnum )
         int methodId
         int argnum
     CODE:
+
+        //TODO::PTZ200310 higly inneficient
+        QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+
         Smoke* smoke = smokeList[smokeId];
         Smoke::Method &method = smoke->methods[methodId];
         Smoke::Index* args = smoke->argumentList + method.args;
@@ -183,6 +197,9 @@ getNativeMetaObject( smokeId, methodId )
         int methodId
     CODE:
         smokeperl_object* nothis = alloc_smokeperl_object(false, Smoke::NullModuleIndex, nullptr);
+
+       //TODO::PTZ200310 higly inneficient
+       QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
         Smoke* smoke = smokeList[smokeId];
         PerlQt5::MethodCall call(
             smoke,
@@ -203,6 +220,9 @@ getNumArgs( smokeId, methodId )
         int smokeId
         int methodId
     CODE:
+        //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+
         Smoke::Method &method = smokeList[smokeId]->methods[methodId];
         RETVAL = method.numArgs;
     OUTPUT:
@@ -223,9 +243,11 @@ void
 findClass( name )
         char* name
     PPCODE:
-        Smoke::ModuleIndex mi = qtcore_Smoke->findClass(name);
+         Smoke::ModuleIndex mi = qtcore_Smoke->findClass(name);
         EXTEND(SP, 2);
         PUSHs(sv_2mortal(newSViv(mi.index)));
+        //TODO::PTZ200310 higly inneficient
+        QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
         PUSHs(sv_2mortal(newSViv(smokeList.indexOf(mi.smoke))));
 
 #// Args: char* name: the c++ name of a Qt4 class
@@ -237,6 +259,9 @@ classFromId( moduleId )
         AV* av = (AV*)SvRV(moduleId);
         int smokeId = SvIV(*(SV**)av_fetch(av, 0, 0));
         int classId = SvIV(*(SV**)av_fetch(av, 1, 0));
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+
         Smoke* smoke = smokeList[smokeId];
         RETVAL = smoke->classes[classId].className;
     OUTPUT:
@@ -264,22 +289,31 @@ installautoload( package )
         delete[] autoload;
 
 void
-installqt_metacall(package)
-        char *package
+installqt_metacall(metaObject)
+        SV* metaObject
     CODE:
-        if(!package) XSRETURN_EMPTY;
-        char *qt_metacall = new char[strlen(package) + 14];
-        strcpy(qt_metacall, package);
-        strcat(qt_metacall, "::qt_metacall");
-        newXS(qt_metacall, XS_qt_metacall, __FILE__);
-        delete[] qt_metacall;
+//PTZ200313 ...really obsolete...!
+//void MetaObjectManager::installMetacall(QMetaObject* metaObject) const {
+//void MetaObjectManager::addSlot(QMetaObject*& metaObject, const std::string& slotName, const std::vector<std::string>& argTypes) {
+//        if(!package) XSRETURN_EMPTY;
+//char *qt_metacall = new char[strlen(package) + 14];
+//strcpy(qt_metacall, package);
+//strcat(qt_metacall, "::qt_metacall");
+//PTZ200314         newXS(qt_metacall, XS_qt_metacall, __FILE__);
+//newXS(qt_metacall, XS_QOBJECT_METACALL, __FILE__);
+//delete[] qt_metacall;
+        SmokePerl::Object* moSmokeObj = SmokePerl::Object::fromSV(metaObject);
+        QMetaObject* mo = (QMetaObject*)moSmokeObj->value;
+	PerlQt5::MetaObjectManager::instance().installMetacall(mo);
 
-void
-installsignal(signalname)
-        char *signalname
-    CODE:
-        if(!signalname) XSRETURN_EMPTY;
-        newXS(signalname, XS_signal, __FILE__);
+
+#//void
+#//installsignal(signalname)
+#//        char *signalname
+#//    CODE:
+#//        if(!signalname) XSRETURN_EMPTY;
+#//newXS(signalname, XS_signal, __FILE__);  PTZ200313 needs XS_signal
+#//PTZ200214 PerlQt5::QtCore::Signal->new ($class, $instance, $name, $code) = @_;
 
 void
 installthis( package )
@@ -290,7 +324,7 @@ installthis( package )
         strcpy(attr, package);
         strcat(attr, "::this");
         // *{ $name } = sub () : lvalue;
-        CV *attrsub = newXS(attr, XS_this, __FILE__);
+        CV *attrsub = newXS(attr, XS_this, __FILE__); //PTZ200313 needs XS_signal
         sv_setpv((SV*)attrsub, ""); // sub this () : lvalue; perldoc perlsub
         delete[] attr;
 
@@ -312,6 +346,9 @@ make_metaObject(parentModuleId,parentMeta,stringdata_sv,data_sv)
         else {
             // The parent class is a Smoke class, so call metaObject() on the
             // instance to get it via a smoke library call
+	  //TODO::PTZ200310 higly inneficient
+	  QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+ 
             Smoke* parentClassSmoke = smokeList[SvIV(*(SV**)av_fetch((AV*)SvRV(parentModuleId), 0, 0))];
             Smoke::Index parentClassId = SvIV(*(SV**)av_fetch((AV*)SvRV(parentModuleId), 1, 0));
             Smoke::ModuleIndex classMId( parentClassSmoke, parentClassId );
@@ -393,6 +430,7 @@ setDebug(channel)
     CODE:
         do_debug = channel;
 
+#PTZ200323 not liked... sv_qapp is a stincky global better use SmokePerl::getInstance(ptr)
 void
 setQApp( qapp )
         SV* qapp
@@ -400,6 +438,9 @@ setQApp( qapp )
         if( SvROK( qapp ) )
             sv_setsv_mg( sv_qapp, qapp );
 
+
+#//PTZ200323 not liked... sv_this is a stincky global better use SmokePerl::getInstance(ptr)->value
+#//called within Qt...base, QObject::NEW,new 
 void
 setThis(obj)
         SV* obj
@@ -433,6 +474,9 @@ MODULE = Qt                 PACKAGE = Qt
 
 PROTOTYPES: ENABLE
 
+  #//PTZ200324 QtCore::getCppPointer(sv)  SmokePerl::Object::fromSV(sv)->value
+  #//PTZ200324  getInstance(ptr) ~ (newSVsv(SmokePerl::ObjectMap::instance().get(ptr)->sv));
+  #
 SV*
 this()
     CODE:
@@ -440,6 +484,8 @@ this()
     OUTPUT:
         RETVAL
 
+
+#//PTZ200324  getInstance(ptr) ~ (newSVsv(SmokePerl::ObjectMap::instance().get(ptr)->sv));
 SV*
 qApp()
     CODE:
@@ -449,6 +495,7 @@ qApp()
             RETVAL = newSVsv(sv_qapp);
     OUTPUT:
         RETVAL
+
 
 MODULE = QtCore            PACKAGE = QtCore
 
@@ -493,42 +540,44 @@ BOOT:
 #//    newXS(" Qt::Object::findChildren", XS_find_qobject_children, __FILE__);
     newXS("Qt::Object::findChildren", XS_find_qobject_children, __FILE__);
     newXS("Qt::Object::qobject_cast", XS_qobject_qt_metacast, __FILE__);
-    newXS("Qt::qRegisterResourceData", XS_q_register_resource_data, __FILE__);
-    newXS("Qt::qUnregisterResourceData", XS_q_unregister_resource_data, __FILE__);
-    newXS(" Qt::AbstractItemModel::columnCount", XS_qabstract_item_model_columncount, __FILE__);
-    newXS(" Qt::AbstractItemModel::data", XS_qabstract_item_model_data, __FILE__);
-    newXS(" Qt::AbstractItemModel::insertColumns", XS_qabstract_item_model_insertcolumns, __FILE__);
-    newXS(" Qt::AbstractItemModel::insertRows", XS_qabstract_item_model_insertrows, __FILE__);
-    newXS(" Qt::AbstractItemModel::removeColumns", XS_qabstract_item_model_removecolumns, __FILE__);
-    newXS(" Qt::AbstractItemModel::removeRows", XS_qabstract_item_model_removerows, __FILE__);
-    newXS(" Qt::AbstractItemModel::rowCount", XS_qabstract_item_model_rowcount, __FILE__);
-    newXS(" Qt::AbstractItemModel::setData", XS_qabstract_item_model_setdata, __FILE__);
-    newXS(" Qt::AbstractItemModel::createIndex", XS_qabstractitemmodel_createindex, __FILE__);
-    newXS("Qt::AbstractItemModel::createIndex", XS_qabstractitemmodel_createindex, __FILE__);
-    newXS(" Qt::ModelIndex::internalPointer", XS_qmodelindex_internalpointer, __FILE__);
-    newXS(" Qt::ByteArray::data", XS_qbytearray_data, __FILE__);
-    newXS(" Qt::ByteArray::constData", XS_qbytearray_data, __FILE__);
-    newXS(" Qt::IODevice::read", XS_qiodevice_read, __FILE__);
-    newXS(" Qt::Buffer::read", XS_qiodevice_read, __FILE__);
-    newXS(" Qt::TcpSocket::read", XS_qiodevice_read, __FILE__);
-    newXS(" Qt::TcpServer::read", XS_qiodevice_read, __FILE__);
-    newXS(" Qt::File::read", XS_qiodevice_read, __FILE__);
-    newXS(" Qt::DataStream::readRawData", XS_qdatastream_readrawdata, __FILE__);
+#/*     newXS("Qt::qRegisterResourceData", XS_q_register_resource_data, __FILE__); */
+#/*     newXS("Qt::qUnregisterResourceData", XS_q_unregister_resource_data, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::columnCount", XS_qabstract_item_model_columncount, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::data", XS_qabstract_item_model_data, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::insertColumns", XS_qabstract_item_model_insertcolumns, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::insertRows", XS_qabstract_item_model_insertrows, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::removeColumns", XS_qabstract_item_model_removecolumns, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::removeRows", XS_qabstract_item_model_removerows, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::rowCount", XS_qabstract_item_model_rowcount, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::setData", XS_qabstract_item_model_setdata, __FILE__); */
+#/*     newXS(" Qt::AbstractItemModel::createIndex", XS_qabstractitemmodel_createindex, __FILE__); */
+#/*     newXS("Qt::AbstractItemModel::createIndex", XS_qabstractitemmodel_createindex, __FILE__); */
 
-    newXS(" Qt::XmlStreamAttributes::EXISTS"   , XS_QXmlStreamAttributes_exists, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::FETCH"    , XS_QXmlStreamAttributes_at, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::FETCHSIZE", XS_QXmlStreamAttributes_size, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::STORE"    , XS_QXmlStreamAttributes_store, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::STORESIZE", XS_QXmlStreamAttributes_storesize, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::DELETE"   , XS_QXmlStreamAttributes_delete, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::CLEAR"    , XS_QXmlStreamAttributes_clear, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::PUSH"     , XS_QXmlStreamAttributes_push, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::POP"      , XS_QXmlStreamAttributes_pop, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::SHIFT"    , XS_QXmlStreamAttributes_shift, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::UNSHIFT"  , XS_QXmlStreamAttributes_unshift, __FILE__);
-    newXS(" Qt::XmlStreamAttributes::SPLICE"   , XS_QXmlStreamAttributes_splice, __FILE__);
-    newXS("Qt::XmlStreamAttributes::_overload::op_equality", XS_QXmlStreamAttributes__overload_op_equality, __FILE__);
+#/*     newXS(" Qt::ModelIndex::internalPointer", XS_qmodelindex_internalpointer, __FILE__); */
+#/*     newXS(" Qt::ByteArray::data", XS_qbytearray_data, __FILE__); */
+#/*     newXS(" Qt::ByteArray::constData", XS_qbytearray_data, __FILE__); */
+#/*     newXS(" Qt::IODevice::read", XS_qiodevice_read, __FILE__); */
+#/*     newXS(" Qt::Buffer::read", XS_qiodevice_read, __FILE__); */
+#/*     newXS(" Qt::TcpSocket::read", XS_qiodevice_read, __FILE__); */
+#/*     newXS(" Qt::TcpServer::read", XS_qiodevice_read, __FILE__); */
+#/*     newXS(" Qt::File::read", XS_qiodevice_read, __FILE__); */
+#/*     newXS(" Qt::DataStream::readRawData", XS_qdatastream_readrawdata, __FILE__); */
 
+#/*     newXS(" Qt::XmlStreamAttributes::EXISTS"   , XS_QXmlStreamAttributes_exists, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::FETCH"    , XS_QXmlStreamAttributes_at, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::FETCHSIZE", XS_QXmlStreamAttributes_size, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::STORE"    , XS_QXmlStreamAttributes_store, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::STORESIZE", XS_QXmlStreamAttributes_storesize, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::DELETE"   , XS_QXmlStreamAttributes_delete, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::CLEAR"    , XS_QXmlStreamAttributes_clear, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::PUSH"     , XS_QXmlStreamAttributes_push, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::POP"      , XS_QXmlStreamAttributes_pop, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::SHIFT"    , XS_QXmlStreamAttributes_shift, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::UNSHIFT"  , XS_QXmlStreamAttributes_unshift, __FILE__); */
+#/*     newXS(" Qt::XmlStreamAttributes::SPLICE"   , XS_QXmlStreamAttributes_splice, __FILE__); */
+#/*     newXS("Qt::XmlStreamAttributes::_overload::op_equality", XS_QXmlStreamAttributes__overload_op_equality, __FILE__); */
 
-    sv_this = newSV(0);
-    sv_qapp = newSV(0);
+#//PTZ200323 try to obsolete those...
+    sv_this = newSV(0); //this is the global Qt::this() at Qt::base::new() which should be set by  SmokePerl::Object::getInstance(ptr)?
+    sv_qapp = newSV(0);  //this is the global Qt::qApp() 
+#/* #endif  */

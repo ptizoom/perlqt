@@ -38,7 +38,10 @@ extern bool qUnregisterResourceData(int, const unsigned char *, const unsigned c
 //PTZ200206 qtcore_Smoke need to be hoocked to right instance... ie.  SmokePerl::SmokeManager::instance()
 // Standard smoke variables
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
-extern Q_DECL_EXPORT QList<Smoke*> smokeList;
+//TODO::PTRZ200212 
+//extern Q_DECL_EXPORT QList<Smoke*> smokeList;  is  std::vector<Smoke*> SmokePerl::SmokeManager::instance().getSmokes()
+
+//TODO::PTZ200322 to be obsoleted
 
 //PTZ200207 should not use.. in qt5 , it is all HV .. no AV settings!
 extern Q_DECL_EXPORT QList<QString> arrayTypes;
@@ -122,7 +125,7 @@ Q_DECL_EXPORT COP* caller(I32 count)
     return cx->blk_oldcop;
 }
 
-Q_DECL_EXPORT smokeperl_object * 
+Q_DECL_EXPORT smokeperl_object *
 alloc_smokeperl_object(bool ownership_b
 		       , const Smoke::ModuleIndex& classId
 		       , void * ptr
@@ -139,7 +142,7 @@ alloc_smokeperl_object(bool ownership_b
     return o;
 }
 
-SV* alloc_perl_moduleindex( int smokeIndex, Smoke::Index classOrMethIndex ) {
+SV* alloc_perl_moduleindex(int smokeIndex, Smoke::Index classOrMethIndex ) {
     AV* av = newAV();
     SV* sv = newRV_noinc( (SV*)av );
     av_push( av, newSViv((IV)smokeIndex) );
@@ -385,29 +388,38 @@ QList<MocArgument*> getMocArguments(Smoke* smoke, const char * typeName, QList<Q
 // and a perl SV.  If you have a virtual function call, you only start with a
 // c++ pointer.  This reference allows you to trace back to a perl package, and
 // find a subroutine in that package to call.
-Q_DECL_EXPORT SV* getPointerObject(void* ptr) {
-    if (PL_dirty) return 0;
-    //TODO:PTZ200207 find equi
-    HV *hv = pointer_map;
-    SV *keysv = newSViv((IV)ptr);
-    STRLEN len;
-    char *key = SvPV(keysv, len);
-    // Look to see in the pointer_map for a ptr->perlSV reference
-    SV **svp = hv_fetch(hv, key, len, 0);
-    // Nothing found, exit out
-    if(!svp){
-        SvREFCNT_dec(keysv);
-        return 0;
-    }
-    // Corrupt entry, not sure how this would happen
-    if(!SvOK(*svp)){
-        if(SvREFCNT(*svp) != 0)
-            hv_delete(hv, key, len, G_DISCARD);
-        SvREFCNT_dec(keysv);
-        return 0;
-    }
-    SvREFCNT_dec(keysv);
-    return *svp;
+//PTZ200322 this is SmokePerl::getInstance(ptr) in smokeperl.xs, there might be better
+//don't want to use this pointer_map...
+Q_DECL_EXPORT SV* getPointerObject_(void* ptr) {
+
+  SV* retval = &PL_sv_undef;
+  SmokePerl::Object* object = SmokePerl::ObjectMap::instance().get(ptr);
+  if (object != nullptr)
+    retval = sv_2mortal(newSVsv(object->sv));
+  return retval;
+  
+    // if (PL_dirty) return 0;
+    // //TODO:PTZ200207 find equi
+    // HV *hv = pointer_map;
+    // SV *keysv = newSViv((IV)ptr);
+    // STRLEN len;
+    // char *key = SvPV(keysv, len);
+    // // Look to see in the pointer_map for a ptr->perlSV reference
+    // SV **svp = hv_fetch(hv, key, len, 0);
+    // // Nothing found, exit out
+    // if(!svp){
+    //     SvREFCNT_dec(keysv);
+    //     return 0;
+    // }
+    // // Corrupt entry, not sure how this would happen
+    // if(!SvOK(*svp)){
+    //     if(SvREFCNT(*svp) != 0)
+    //         hv_delete(hv, key, len, G_DISCARD);
+    //     SvREFCNT_dec(keysv);
+    //     return 0;
+    // }
+    // SvREFCNT_dec(keysv);
+    // return *svp;
 }
 
 int isDerivedFrom(Smoke *smoke, Smoke::Index classId, Smoke *baseSmoke, Smoke::Index baseId, int count) {
@@ -896,47 +908,44 @@ const char* resolve_classname_qt( smokeperl_object* o ) {
 #endif //trouve an autre derivation...!
 
 Q_DECL_EXPORT SV* set_obj_info(const char * className, smokeperl_object * o) {
- //PTZ200207
-#if _PTZ200207_qt4  
-    // The hash
-    SV* obj;
-    SV* var;
-    if( arrayTypes.contains( className ) ) {
-        obj = (SV*)newAV();
-        var = newRV_noinc((SV*)obj);
-        hv_magic((AV*)obj, var, PERL_MAGIC_tied);
-    }
-    else {
-        obj = (SV*)newHV();
-        var = newRV_noinc((SV*)obj);
-    }
+  //PTZ200207
+    // // The hash
+    // SV* obj;
+    // SV* var;
+    // if( arrayTypes.contains( className ) ) {
+    //     obj = (SV*)newAV();
+    //     var = newRV_noinc((SV*)obj);
+    //     hv_magic((AV*)obj, var, PERL_MAGIC_tied);
+    // }
+    // else {
+    //     obj = (SV*)newHV();
+    //     var = newRV_noinc((SV*)obj);
+    // }
 
-    // The hash reference to return
+    // // The hash reference to return
 
-    // Bless the sv to that package.
-    sv_bless( var, gv_stashpv(className, TRUE) );
+    // // Bless the sv to that package.
+    // sv_bless( var, gv_stashpv(className, TRUE) );
 
-    // For this, we need a magic wand.  This is what actually
-    // stores 'o' into our hash.
-    sv_magicext((SV*)obj, 0, '~', &vtbl_smoke, (char*)o, sizeof(*o));
+    // // For this, we need a magic wand.  This is what actually
+    // // stores 'o' into our hash.
+    // sv_magicext((SV*)obj, 0, '~', &vtbl_smoke, (char*)o, sizeof(*o));
 
-    // We're done with our local var
-    return var;
-#else
+    // // We're done with our local var
+    // return var;
 
-    SV* _sv = o->wrap();
+  SV* _sv = o->wrap();
 
-    //PTZ200207  aka construct_copy( o );
-    SmokePerl::ObjectMap::instance().insert(o, o->classId);
-    
-    // Bless the sv to that package.
-    if (className == nullptr) {
-      SmokePerl::SmokePerlBinding* _binding
-	= SmokePerl::SmokeManager::instance().getBindingForSmoke(o->classId.smoke);
-      className = _binding->className(o->classId.index);
-    }
-    return sv_bless(_sv, gv_stashpv(className, TRUE));
-#endif    
+  //PTZ200207  aka construct_copy( o );
+  SmokePerl::ObjectMap::instance().insert(o, o->classId);
+  
+  // Bless the sv to that package.
+  if (className == nullptr) {
+    SmokePerl::SmokePerlBinding* _binding
+      = SmokePerl::SmokeManager::instance().getBindingForSmoke(o->classId.smoke);
+    className = _binding->className(o->classId.index);
+  }
+  return sv_bless(_sv, gv_stashpv(className, TRUE));
 }
 
 // Returns the memory address of the cxxptr stored within a given sv.
@@ -1769,9 +1778,11 @@ XS(XS_qvariant_value) {
     if ( items != 2 ) {
         croak( "%s", "Usage: Qt::qVariantValue( Qt::Variant, $typeName )" );
     }
-	const char * classname = SvPV_nolen(ST(1));
+    const char * classname = SvPV_nolen(ST(1));
     Smoke::ModuleIndex * sv_class_id = new Smoke::ModuleIndex;
     SV* moduleIdRef = package_classId(classname);
+    
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
     sv_class_id->smoke = smokeList[SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 0, 0))];
     sv_class_id->index = SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 1, 0));
 
@@ -2198,11 +2209,20 @@ XS(XS_AUTOLOAD_) {
 
         // Get the classId (eventually converting SUPER to the right Qt5 class)
         SV* moduleIdRef = package_classId( package );
-        Smoke::ModuleIndex mi;
 
         // This complicated mess is just $moduleIdRef->[0], $moduleIdRef->[1];
-        mi.smoke = smokeList[SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 0, 0))];
-        mi.index = SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 1, 0));
+	//const std::vector<Smoke*> _v = SmokePerl::SmokeManager::instance().getSmokes();
+	//QVector< Smoke*>  smokeList = QVector::fromStdVector ( const std::vector<T> & vector ) 
+	
+	QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+
+        Smoke::ModuleIndex mi
+	  = {
+	     .smoke = smokeList[SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 0, 0))]
+	     , .index = SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 1, 0))
+	};
+        //mi.smoke = smokeList[SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 0, 0))];
+        //mi.index = SvIV(*(SV**)av_fetch((AV*)SvRV(moduleIdRef), 1, 0));
         char* classname = (char*) mi.smoke->className( mi.index );
         // We may call a perl sub to find the retModuleId.  This will overwrite
         // the current SP pointer, so save a copy
@@ -2253,7 +2273,9 @@ XS(XS_AUTOLOAD_) {
             SAVETMPS;
             PUSHMARK( SP - items + withObject );
             EXTEND( SP, 3 );
-            PUSHs(sv_2mortal(alloc_perl_moduleindex(smokeList.indexOf(mi.smoke), mi.index)));
+            PUSHs(sv_2mortal(alloc_perl_moduleindex(
+						    smokeList.indexOf(mi.smoke)
+						    , mi.index)));
             PUSHs(sv_2mortal(newSVpv(methodname, 0)));
             PUSHs(sv_2mortal(newSVpv(classname, 0)));
             PUTBACK;
@@ -2347,7 +2369,7 @@ XS(XS_AUTOLOAD_) {
 }
 
 //PTZ200210  use XS(XS_QOBJECT_METACALL) in /usr/src/perlqt5/modules/qtcore/perlqtmetaobject.cpp 266:                PerlQt5::InvokeSlot slot(method, selfSV, argv, (SV*)GvCV(gv));
-//using XS_qt_metacall =  PerlQt5::XS_QOBJECT_METACALL;
+//using XS_qt_metacall =  PerlQt5::XS_QOBJECT_METACALL; from perlmetaobject.cpp
 // Call the super class's qt_metacall
 // XS(XS_qt_metacall){
 //     dXSARGS;
@@ -2541,10 +2563,28 @@ XS(XS_AUTOLOAD_) {
 //     // TODO: Handle signal return value
 // }
 
+
+// this is called by Qt::_internal::installthis(__PACKAGE__)
+// and mapped to sub __PACKAGE__::this
+//  sv_this is initialised in QtCore::BOOT
+// set in Qt::_internal::
+// set in Qt::base::new() ... setThis, setQApp !
+// linked in Qt::this()
+//PTZ200323 so it could be   SmokePerl::getCppPointer(sv=self) ?
 XS(XS_this) {
     dXSARGS;
-    PERL_UNUSED_VAR(items);
-    ST(0) = sv_this;
+    if (0 > items && items < 1) {
+        croak( "%s, %d %s", "::this requires a $self argument. ", items, " were supplied" );
+        XSRETURN_UNDEF;
+    }
+
+    //PERL_UNUSED_VAR(items);
+    //PTZ200322 no! ST(0) = sv_this;
+    SmokePerl::Object* object = SmokePerl::Object::fromSV(ST(0));
+    if (object == nullptr)
+      XSRETURN_UNDEF;
+    ST(0) = sv_2mortal(newSVnv((long long)object->value));
+   
     XSRETURN(1);
 }
 

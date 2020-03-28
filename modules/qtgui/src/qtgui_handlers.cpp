@@ -24,12 +24,12 @@
 
 
 // Perl headers
-extern "C" {
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-}
+//extern "C" {
+  //#include "EXTERN.h"
+  //#include "perl.h"
+  //#include "XSUB.h"
+  //#include "ppport.h"
+//}
 
 #include <smokeperl.h>
 #include <marshall_macros.h>

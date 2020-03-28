@@ -303,17 +303,20 @@ namespace PerlQt5 {
         QByteArray t(type().name());
         t.replace("const ", "");
         t.replace("&", "");
-
+	//TODO:PTZ200321 not there anymore... and slot_returnvalue is not there as PerlQtModule not used...!slot_returnvalue machanisme to redo...
+PerlQt5::Binding * _perlqt_modules_smoke = SmokePerl::SmokeManager::instance().getBindingForSmoke(smokes());
+	#if 1
         if (perlqt_modules[smoke()].slot_returnvalue) {
-            Smoke::ModuleIndex classId = smoke()->idClass(t.constData(), true);
-            if (!perlqt_modules[smoke()].slot_returnvalue(classId, o, _stack)) {
-                // module did not handle this type, do the default
-                smokeStackToQt4Stack(_stack, o, 0, 1, _replyType);
-            }
-        }
-        else {
-            smokeStackToQt4Stack(_stack, o, 0, 1, _replyType);
-        }
+             Smoke::ModuleIndex classId = smoke()->idClass(t.constData(), true);
+             if (!perlqt_modules[smoke()].slot_returnvalue(classId, o, _stack)) {
+                 module did not handle this type, do the default
+                 smokeStackToQt4Stack(_stack, o, 0, 1, _replyType);
+             }
+         }
+         else {
+             smokeStackToQt4Stack(_stack, o, 0, 1, _replyType);
+         }
+	#endif
     }
 
     Smoke::StackItem &SlotReturnValue::item() {

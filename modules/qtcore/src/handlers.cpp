@@ -84,15 +84,18 @@
 #endif
 
 //==============================================================================
-#include "perlqtcore_util.h"
 #include "handlers_qt4.h"
 #include "smoke_types_qt4.h"
+
+
+#include "perlqtcore_util.h"
 #include "marshall_basetypes.h"
 #include "marshall_macros.h"
 
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
 
-HV *type_handlers = 0;
+
+//PTZ200213 HV *type_handlers = 0;
 
 //PTZ200207 within ObjectMap:: struct mgvtbl vtbl_smoke = { 0, 0, 0, 0, smokeperl_free };
 
@@ -203,7 +206,9 @@ void *construct_copy(smokeperl_object *o) {
     Smoke::ClassFn fn = o->smoke()->classes[o->classId.index].classFn;
     (*fn)(o->smoke()->methods[ccMeth].method, 0, args);
     // Assign the new object's binding
+    //PTZ200320 change...
     args[1].s_voidp = perlqt_modules[o->smoke()].binding;
+    
     (*fn)(0, args[0].s_voidp, args);
 
     if( do_debug && (do_debug & qtdb_gc) )
@@ -218,24 +223,28 @@ void *construct_copy(smokeperl_object *o) {
 #endif  
 }
 
-template <class T>
-void marshall_it(Marshall* m) {
-    switch( m->action() ) {
-        case Marshall::FromSV:
-            marshall_from_perl<T>( m );
-        break;
 
-        case Marshall::ToSV:
-            marshall_to_perl<T>( m );
-        break;
+//PTZ200317 aka SmokePerl::marshall_PrimitiveRef<char*>}
+// template <class T>
+// void marshall_it(Marshall* m) {
+//     switch( m->action() ) {
+//         case Marshall::FromSV:
+//             marshall_from_perl<T>( m );
+//         break;
 
-        default:
-            m->unsupported();
-        break;
-    }
-}
+//         case Marshall::ToSV:
+//             marshall_to_perl<T>( m );
+//         break;
 
-template Q_DECL_EXPORT void marshall_it<unsigned int *>(Marshall* m);
+//         default:
+//             m->unsupported();
+//         break;
+//     }
+// }
+
+//template Q_DECL_EXPORT void marshall_it<unsigned int *>(Marshall* m);
+
+
 
 QString* qstringFromPerlString( SV* perlstring ) {
     // Finally found how 'in_constructor' is being used
@@ -297,230 +306,227 @@ SV* perlstringFromQString( QString * s ) {
 SV* perlstringFromQByteArray( QByteArray * s ) {
     return newSVpv(s->data(), s->size());
 }
+//#if _TODO_PTZ200121
+// void marshall_basetype(Marshall* m) {
+//     switch( m->type().element() ) {
 
-//using marshall_basetype=SmokePerl::marshall_basetype;
-//using marshall_void=SmokePerl::marshall_void;
-//using marshall_unknown=SmokePerl::marshall_unknown;
+//         case Smoke::t_bool:
+//             marshall_it<bool>(m);
+//         break;
 
-#if _TODO_PTZ200121
-void marshall_basetype(Marshall* m) {
-    switch( m->type().element() ) {
+//         case Smoke::t_char:
+//             marshall_it<signed char>(m);
+//         break;
 
-        case Smoke::t_bool:
-            marshall_it<bool>(m);
-        break;
+//         case Smoke::t_uchar:
+//             marshall_it<unsigned char>(m);
+//         break;
 
-        case Smoke::t_char:
-            marshall_it<signed char>(m);
-        break;
+//         case Smoke::t_short:
+//             marshall_it<short>(m);
+//         break;
 
-        case Smoke::t_uchar:
-            marshall_it<unsigned char>(m);
-        break;
+//         case Smoke::t_ushort:
+//             marshall_it<unsigned short>(m);
+//         break;
 
-        case Smoke::t_short:
-            marshall_it<short>(m);
-        break;
+//         case Smoke::t_int:
+//             marshall_it<int>(m);
+//         break;
 
-        case Smoke::t_ushort:
-            marshall_it<unsigned short>(m);
-        break;
+//         case Smoke::t_uint:
+//             marshall_it<unsigned int>(m);
+//         break;
 
-        case Smoke::t_int:
-            marshall_it<int>(m);
-        break;
+//         case Smoke::t_long:
+//             marshall_it<long>(m);
+//         break;
 
-        case Smoke::t_uint:
-            marshall_it<unsigned int>(m);
-        break;
+//         case Smoke::t_ulong:
+//             marshall_it<unsigned long>(m);
+//         break;
 
-        case Smoke::t_long:
-            marshall_it<long>(m);
-        break;
+//         case Smoke::t_float:
+//             marshall_it<float>(m);
+//         break;
 
-        case Smoke::t_ulong:
-            marshall_it<unsigned long>(m);
-        break;
+//         case Smoke::t_double:
+//             marshall_it<double>(m);
+//         break;
 
-        case Smoke::t_float:
-            marshall_it<float>(m);
-        break;
+//         case Smoke::t_enum:
+//             switch(m->action()) {
+//                 case Marshall::FromSV:
+//                     if( SvROK(m->var()) ) {
+//                         m->item().s_enum = (long)SvIV(SvRV(m->var()));
+//                     }
+//                     else {
+//                         m->item().s_enum = (long)SvIV(m->var());
+//                     }
+//                 break;
+//                 case Marshall::ToSV: {
+//                     // Bless the enum value to a package named the same as the
+//                     // enum name
+//                     SV* rv = newRV_noinc(newSViv((IV)m->item().s_enum));
+//                     sv_bless( rv, gv_stashpv(m->type().name(), TRUE) );
+//                     sv_setsv_mg(m->var(), rv);
+//                 }
+//                 break;
+//             }
+//         break;
 
-        case Smoke::t_double:
-            marshall_it<double>(m);
-        break;
+//         case Smoke::t_class:
+//             switch( m->action() ) {
+//                 case Marshall::FromSV: {
+//                     smokeperl_object* o = sv_obj_info( m->var() );
+//                     if( !o || !o->ptr() ) {
+//                         if( m->type().isRef() ) {
+//                             warn( "References can't be null or undef\n");
+//                             m->unsupported();
+//                         }
+//                         m->item().s_class = 0;
+//                         break;
+//                     }
 
-        case Smoke::t_enum:
-            switch(m->action()) {
-                case Marshall::FromSV:
-                    if( SvROK(m->var()) ) {
-                        m->item().s_enum = (long)SvIV(SvRV(m->var()));
-                    }
-                    else {
-                        m->item().s_enum = (long)SvIV(m->var());
-                    }
-                break;
-                case Marshall::ToSV: {
-                    // Bless the enum value to a package named the same as the
-                    // enum name
-                    SV* rv = newRV_noinc(newSViv((IV)m->item().s_enum));
-                    sv_bless( rv, gv_stashpv(m->type().name(), TRUE) );
-                    sv_setsv_mg(m->var(), rv);
-                }
-                break;
-            }
-        break;
+//                     void* ptr = o->ptr();
 
-        case Smoke::t_class:
-            switch( m->action() ) {
-                case Marshall::FromSV: {
-                    smokeperl_object* o = sv_obj_info( m->var() );
-                    if( !o || !o->ptr() ) {
-                        if( m->type().isRef() ) {
-                            warn( "References can't be null or undef\n");
-                            m->unsupported();
-                        }
-                        m->item().s_class = 0;
-                        break;
-                    }
+//                     if( !m->cleanup() && m->type().isStack()) {
+//                         ptr = construct_copy( o );
+//                         // We don't want to set o->ptr = ptr here.  Doing that
+//                         // will muck with our input variable.  It can cause a
+//                         // situation where two perl variables point to the same
+//                         // c++ pointer, and both perl variables say they own
+//                         // that memory.  Then when GC happens, we'd get a
+//                         // double free.
+//                     }
 
-                    void* ptr = o->ptr();
+//                     Smoke::ModuleIndex fromClass;
+//                     fromClass.smoke = o->smoke();
+//                     fromClass.index = o->classId.index;
 
-                    if( !m->cleanup() && m->type().isStack()) {
-                        ptr = construct_copy( o );
-                        // We don't want to set o->ptr = ptr here.  Doing that
-                        // will muck with our input variable.  It can cause a
-                        // situation where two perl variables point to the same
-                        // c++ pointer, and both perl variables say they own
-                        // that memory.  Then when GC happens, we'd get a
-                        // double free.
-                    }
+//                     Smoke::ModuleIndex toClass;
+//                     toClass.smoke = m->smoke();
+//                     toClass.index = m->type().classId();
 
-                    Smoke::ModuleIndex fromClass;
-                    fromClass.smoke = o->smoke();
-                    fromClass.index = o->classId.index;
+//                     ptr = o->smoke()->cast(
+//                         ptr,
+//                         fromClass,
+//                         toClass
+//                     );
 
-                    Smoke::ModuleIndex toClass;
-                    toClass.smoke = m->smoke();
-                    toClass.index = m->type().classId();
+//                     m->item().s_voidp = ptr;
+//                 }
+//                 break;
+//                 case Marshall::ToSV: {
+//                     if ( !m->item().s_voidp ) {
+//                         SvSetMagicSV(m->var(), &PL_sv_undef);
+//                         return;
+//                     }
 
-                    ptr = o->smoke()->cast(
-                        ptr,
-                        fromClass,
-                        toClass
-                    );
+//                     // Get return value
+//                     void* cxxptr = m->item().s_voidp;
 
-                    m->item().s_voidp = ptr;
-                }
-                break;
-                case Marshall::ToSV: {
-                    if ( !m->item().s_voidp ) {
-                        SvSetMagicSV(m->var(), &PL_sv_undef);
-                        return;
-                    }
+//                     // The return type may be a class that is defined in a
+//                     // different smoke object.  So we need to find out which
+//                     // smoke object to put into the resulting perl object.
+//                     Smoke::Index returnCId = m->type().classId();
+//                     Smoke::Class returnClass = m->smoke()->classes[returnCId];
+//                     Smoke::ModuleIndex returnMId;
+//                     if ( returnClass.external ) {
+//                         returnMId = Smoke::classMap[returnClass.className];
+//                     }
+//                     else {
+//                         returnMId = Smoke::ModuleIndex( m->smoke(), returnCId );
+//                     }
 
-                    // Get return value
-                    void* cxxptr = m->item().s_voidp;
+//                     // See if we already made a perl object for this pointer
+//                     SV* var = getPointerObject(cxxptr);
+//                     if (var) {
+//                         // We've found something in the pointer map that
+//                         // matches.  Let's make sure that object is still
+//                         // valid.  This shouldn't be necessary, but it seems
+//                         // that some things bypass the Binding::deleted code.
+//                         smokeperl_object* o = sv_obj_info(var);
+//                         if( o && o->ptr() ) {
+//                             if ( Smoke::isDerivedFrom( o->smoke(), o->classId, returnMId.smoke, returnMId.index ) ) {
+//                                 SvSetMagicSV(m->var(), var);
+//                                 break;
+//                             }
+//                             else {
+//                                 unmapPointer( o, o->classId.index, 0 );
+//                             }
+//                         }
+//                     }
 
-                    // The return type may be a class that is defined in a
-                    // different smoke object.  So we need to find out which
-                    // smoke object to put into the resulting perl object.
-                    Smoke::Index returnCId = m->type().classId();
-                    Smoke::Class returnClass = m->smoke()->classes[returnCId];
-                    Smoke::ModuleIndex returnMId;
-                    if ( returnClass.external ) {
-                        returnMId = Smoke::classMap[returnClass.className];
-                    }
-                    else {
-                        returnMId = Smoke::ModuleIndex( m->smoke(), returnCId );
-                    }
+//                     // We have a pointer to something that we didn't create.
+//                     // We don't own this memory, so we don't want to delete it.
+//                     // The smokeperl_object contains all the info we need to
+//                     // know about this object
+//                     smokeperl_object* o
+// 		      = alloc_smokeperl_object(false, returnMId, cxxptr );
 
-                    // See if we already made a perl object for this pointer
-                    SV* var = getPointerObject(cxxptr);
-                    if (var) {
-                        // We've found something in the pointer map that
-                        // matches.  Let's make sure that object is still
-                        // valid.  This shouldn't be necessary, but it seems
-                        // that some things bypass the Binding::deleted code.
-                        smokeperl_object* o = sv_obj_info(var);
-                        if( o && o->ptr() ) {
-                            if ( Smoke::isDerivedFrom( o->smoke(), o->classId, returnMId.smoke, returnMId.index ) ) {
-                                SvSetMagicSV(m->var(), var);
-                                break;
-                            }
-                            else {
-                                unmapPointer( o, o->classId.index, 0 );
-                            }
-                        }
-                    }
-
-                    // We have a pointer to something that we didn't create.
-                    // We don't own this memory, so we don't want to delete it.
-                    // The smokeperl_object contains all the info we need to
-                    // know about this object
-                    smokeperl_object* o
-		      = alloc_smokeperl_object(false, returnMId, cxxptr );
-
-                    // Try to create a copy (using the copy constructor) if
-                    // it's a const ref
-                    if( m->type().isConst() && m->type().isRef()) {
+//                     // Try to create a copy (using the copy constructor) if
+//                     // it's a const ref
+//                     if( m->type().isConst() && m->type().isRef()) {
 		      
-#if _TODO_PTZ200121
-		      //TODO::PTZ200121 ohhh crap... find a constructor for  ojects?
-		      cxxptr = construct_copy( o );
-		      if(cxxptr) {
-                            o->ptr = cxxptr;
-                            // We made this copy, we do own this memory
-                            o->allocated = true;
-			    //o->value = cxxptr;
-                        }
-#else
-		      //PTZ200121 from void marshall_VoidPArray(Marshall* m)
-		      {
-			// void* cxxptr = m->item().s_voidp;
-			// SmokePerl::Object* o = new Object(
-			// 				  cxxptr,
-			// 				  SmokePerl::Smoke::NullModuleIndex,
-			// 				  SmokePerl::Object::CppOwnership
-			// 				  );
-			cxxptr = construct_copy(o);
-			SV* sv = o->wrap();			
-			SvSetMagicSV(m->var(), sv);
-		      }
+// #if _TODO_PTZ200121
+// 		      //TODO::PTZ200121 ohhh crap... find a constructor for  ojects?
+// 		      cxxptr = construct_copy( o );
+// 		      if(cxxptr) {
+//                             o->ptr = cxxptr;
+//                             // We made this copy, we do own this memory
+//                             o->allocated = true;
+// 			    //o->value = cxxptr;
+//                         }
+// #else
+// 		      //PTZ200121 from void marshall_VoidPArray(Marshall* m)
+// 		      {
+// 			// void* cxxptr = m->item().s_voidp;
+// 			// SmokePerl::Object* o = new Object(
+// 			// 				  cxxptr,
+// 			// 				  SmokePerl::Smoke::NullModuleIndex,
+// 			// 				  SmokePerl::Object::CppOwnership
+// 			// 				  );
+// 			cxxptr = construct_copy(o);
+// 			SV* sv = o->wrap();			
+// 			SvSetMagicSV(m->var(), sv);
+// 		      }
 
-#endif
-                    }
+// #endif
+//                     }
 
-                    // Figure out what Perl name this should get
-                    const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
+//                     // Figure out what Perl name this should get
+//                     const char* classname = perlqt_modules[o->smoke()].resolve_classname(o);
 
-                    // Bless a HV ref into that package name, and shove o into
-                    // var
-                    var = sv_2mortal(set_obj_info( classname, o ) );
+//                     // Bless a HV ref into that package name, and shove o into
+//                     // var
+//                     var = sv_2mortal(set_obj_info( classname, o ) );
 
-                    // Store this into the ptr map for reference from virtual
-                    // function calls.
-                    if( SmokeClass( m->type() ).hasVirtual() )
-                        mapPointer(var, o, pointer_map, o->classId, 0);
+//                     // Store this into the ptr map for reference from virtual
+//                     // function calls.  //const SmokeType &t = 
+//                     if( SmokeClass( m->type() ).hasVirtual() )
+// 		      //PTZ200212 actually  //const SmokeType &t =m->type();  (t.smoke()->classes + t.classId())->flags() & Smoke::cf_virtual;
+// 		      //(m->type().smoke()->classes + m->type().classId())->flags() & Smoke::cf_virtual)
+//                         mapPointer(var, o, pointer_map, o->classId, 0);
 
-                    // Copy our local var into the marshaller's var, and make
-                    // sure to copy our magic with it
-                    SvSetMagicSV(m->var(), var);
-                }
-            }
-        break;
+//                     // Copy our local var into the marshaller's var, and make
+//                     // sure to copy our magic with it
+//                     SvSetMagicSV(m->var(), var);
+//                 }
+//             }
+//         break;
 
-        default:
-            return marshall_unknown( m );
-        break;
-    }
-}
-void marshall_void(Marshall *) {}
-void marshall_unknown(Marshall *m) {
-    m->unsupported();
-}
+//         default:
+//             return marshall_unknown( m );
+//         break;
+//     }
+// }
+// void marshall_void(Marshall *) {}
+// void marshall_unknown(Marshall *m) {
+//     m->unsupported();
+// }
 
-#endif
+// #endif
 
 
 static void marshall_doubleR(Marshall *m) {
@@ -658,42 +664,43 @@ static void marshall_QByteArray(Marshall *m) {
     }
 }
 
-static void marshall_charP_array(Marshall* m) {
-    switch( m->action() ) {
-        case Marshall::FromSV: {
-            SV* arglistref = m->var();
-            if ( !SvOK( arglistref ) && !SvROK( arglistref ) ) {
-                m->item().s_voidp = 0;
-                break;
-            }
+// static
+// void marshall_charP_array(Marshall* m) {
+//     switch( m->action() ) {
+//         case Marshall::FromSV: {
+//             SV* arglistref = m->var();
+//             if ( !SvOK( arglistref ) && !SvROK( arglistref ) ) {
+//                 m->item().s_voidp = 0;
+//                 break;
+//             }
 
-            AV* arglist = (AV*)SvRV( arglistref );
+//             AV* arglist = (AV*)SvRV( arglistref );
 
-            int argc = av_len(arglist) + 1;
-            char** argv = new char*[argc + 1];
-            long i;
-            for (i = 0; i < argc; ++i) {
-                SV** item = av_fetch(arglist, i, 0);
-                if( item ) {
-                    STRLEN len = 0;
-                    char* s = SvPV( *item, len );
-                    argv[i] = new char[len + 1];
-                    strcpy( argv[i], s );
-                }
-            }
-            argv[i] = 0;
-            m->item().s_voidp = argv;
-            m->next();
+//             int argc = av_len(arglist) + 1;
+//             char** argv = new char*[argc + 1];
+//             long i;
+//             for (i = 0; i < argc; ++i) {
+//                 SV** item = av_fetch(arglist, i, 0);
+//                 if( item ) {
+//                     STRLEN len = 0;
+//                     char* s = SvPV( *item, len );
+//                     argv[i] = new char[len + 1];
+//                     strcpy( argv[i], s );
+//                 }
+//             }
+//             argv[i] = 0;
+//             m->item().s_voidp = argv;
+//             m->next();
 
-            // No cleanup, we don't know what's pointing to us
-        }
-        break;
+//             // No cleanup, we don't know what's pointing to us
+//         }
+//         break;
 
-        default:
-            m->unsupported();
-        break;
-    }
-}
+//         default:
+//             m->unsupported();
+//         break;
+//     }
+// }
 
 void marshall_QStringList(Marshall *m) {
     // Not copied from ruby
@@ -2236,33 +2243,33 @@ void marshall_QPairintint(Marshall *m) {
     }
 }
 
-void marshall_voidP_array(Marshall *m) {
-    // This is a hack that should be removed.
-    switch(m->action()) {
-        case Marshall::FromSV:
-        {
-            m->unsupported();
-        }
-        break;
-        case Marshall::ToSV:
-        {
-            // This is ghetto.
-            void* cxxptr = m->item().s_voidp;
+// void marshall_voidP_array(Marshall *m) {
+//     // This is a hack that should be removed.
+//     switch(m->action()) {
+//         case Marshall::FromSV:
+//         {
+//             m->unsupported();
+//         }
+//         break;
+//         case Marshall::ToSV:
+//         {
+//             // This is ghetto.
+//             void* cxxptr = m->item().s_voidp;
 
-            smokeperl_object* o = alloc_smokeperl_object(
-                false,
-                Smoke::NullModuleIndex,
-                cxxptr );
-            SV *var = sv_2mortal( set_obj_info( "voidparray", o ) );
+//             smokeperl_object* o = alloc_smokeperl_object(
+//                 false,
+//                 Smoke::NullModuleIndex,
+//                 cxxptr );
+//             SV *var = sv_2mortal( set_obj_info( "voidparray", o ) );
 
-            SvSetMagicSV(m->var(), var);
-        }
-        break;
-        default:
-            m->unsupported();
-        break;
-    }
-}
+//             SvSetMagicSV(m->var(), var);
+//         }
+//         break;
+//         default:
+//             m->unsupported();
+//         break;
+//     }
+// }
 
 #if QT_VERSION >= 0x40300
 void marshall_QMultiMapQStringQString(Marshall *m) {
@@ -2384,12 +2391,19 @@ DEF_VALUELIST_MARSHALLER( QNetworkCookieList, QList<QNetworkCookie>, QNetworkCoo
 DEF_VALUELIST_MARSHALLER( QPrinterInfoList, QList<QPrinterInfo>, QPrinterInfo )
 #endif
 
-Q_DECL_EXPORT TypeHandler Qt_handlers[] = {
-    { "bool*", marshall_it<bool *> },
+//template void marshall_it<bool *>(Marshall* m);
+
+//PTZ200317 is also qtcore_typeHandlers
+Q_DECL_EXPORT TypeHandler Qt_handlers {
+
+    { "bool*", marshall_it<bool *> }, //PTZ200317 aka SmokePerl::marshall_PrimitiveRef<char*>}
     { "bool&", marshall_it<bool *> },
-    { "char**", marshall_charP_array },
+    { "char**", marshall_charP_array },   //PTZ200317 aka SmokePerl::marshall_CharPArray
+
+#if 1
+      
     { "char*",marshall_it<char *> },
-    { "char*&",marshall_it<char *&> },
+      //PTZ200318 { "char*&",marshall_it<char *&> },
     { "DOM::DOMTimeStamp", marshall_it<long long> },
     { "double*", marshall_doubleR },
     { "double&", marshall_doubleR },
@@ -2400,10 +2414,13 @@ Q_DECL_EXPORT TypeHandler Qt_handlers[] = {
     { "long long&", marshall_it<long long> },
     { "long long int", marshall_it<long long> },
     { "long long int&", marshall_it<long long> },
+      
     { "QList<QFileInfo>", marshall_QFileInfoList },
     { "QFileInfoList", marshall_QFileInfoList },
     { "QGradiantStops", marshall_QPairqrealQColor },
     { "QGradiantStops&", marshall_QPairqrealQColor },
+ 
+     
     { "unsigned int&", marshall_it<unsigned int *> },
     { "quint32&", marshall_it<unsigned int *> },
     { "uint&", marshall_it<unsigned int *> },
@@ -2416,6 +2433,8 @@ Q_DECL_EXPORT TypeHandler Qt_handlers[] = {
     { "quint16&", marshall_it<unsigned short *> },
     { "qint64", marshall_it<long long> },
     { "qint64&", marshall_it<long long> },
+ 
+      
     { "QHash<QString,QVariant>", marshall_QHashQStringQVariant },
     { "const QHash<QString,QVariant>&", marshall_QHashQStringQVariant },
     { "QList<const char*>", marshall_QListCharStar },
@@ -2594,40 +2613,51 @@ Q_DECL_EXPORT TypeHandler Qt_handlers[] = {
     { "QList<QNetworkCookie>&", marshall_QNetworkCookieList },
     { "QList<QPrinterInfo>", marshall_QPrinterInfoList },
 #endif
-    { 0, 0 }
+      //#if 0
+#endif //0
+    { "", nullptr }
 };
+
+
+
+//Q_DECL_EXPORT
+// void install_handlers(TypeHandler const& handler) {
+//   SmokePerl::Marshall::installHandlers(handler);  
+//     // if(!type_handlers) type_handlers = newHV();
+//     // while(handler->name) {
+//     //     hv_store(type_handlers, handler->name, strlen(handler->name), newSViv((IV)handler), 0);
+//     //     handler++;
+//     // }
+// }
 
 //PTZ181001 needs being defined somewhere?
 //
-Q_DECL_EXPORT
-void install_handlers(TypeHandler *handler) {
-    if(!type_handlers) type_handlers = newHV();
-    while(handler->name) {
-        hv_store(type_handlers, handler->name, strlen(handler->name), newSViv((IV)handler), 0);
-        handler++;
-    }
-}
+//  SmokePerl::Marshall::HandlerFn
 
-Marshall::HandlerFn getMarshallFn(const SmokeType &type) {
-    if(type.element()) // If it's not t_voidp
-        return marshall_basetype;
-    if(!type.name())
-        return marshall_void;
 
-    U32 len = strlen(type.name());
-    //fprintf( stderr, "Request to marshall %s\n", type.name() );
-    SV **svp = hv_fetch(type_handlers, type.name(), len, 0);
+// Marshall::HandlerFn getMarshallFn(const SmokeType &type) {
+//     return SmokePerl::Marshall::getMarshallFn(type);
+    
+//     // if(type.element()) // If it's not t_voidp
+//     //     return marshall_basetype;
+//     // if(!type.name())
+//     //     return marshall_void;
 
-    //                           len > strlen("const ")
-    if(!svp && type.isConst() && len > 6) {
-        // Look for a type name that doesn't include const.
-        svp = hv_fetch(type_handlers, type.name() + 6, len - 6, 0);
-    }
+//     // U32 len = strlen(type.name());
+//     // //fprintf( stderr, "Request to marshall %s\n", type.name() );
+//     // SV **svp = hv_fetch(type_handlers, type.name(), len, 0);
 
-    if(svp) {
-        TypeHandler *h = (TypeHandler*)SvIV(*svp);
-        return h->fn;
-    }
+//     // //                           len > strlen("const ")
+//     // if(!svp && type.isConst() && len > 6) {
+//     //     // Look for a type name that doesn't include const.
+//     //     svp = hv_fetch(type_handlers, type.name() + 6, len - 6, 0);
+//     // }
 
-    return marshall_unknown;
-}
+//     // if(svp) {
+//     //     TypeHandler *h = (TypeHandler*)SvIV(*svp);
+//     //     return h->fn;
+//     // }
+
+//     // return marshall_unknown;
+// }
+
