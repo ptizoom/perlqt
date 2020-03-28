@@ -57,6 +57,8 @@ BEGIN {
 	my @suffix_libs_path = ('.libs'
                                 , 'blib/arch/auto'
                                 , 'src/interfaces/perl_modular'
+				, 'src'
+				, 
              );
 
 
@@ -66,7 +68,8 @@ BEGIN {
                  , grep(-d
                         , map(File::Spec->catdir($bld_basedir, $_)
                               , @suffix_libs_path))
-		 , '/usr/local/lib' #PTZ191126 for PerlQt5  libsmokeperl.so
+		 #, '/usr/local/lib' #PTZ191126 for PerlQt5  libsmokeperl.so
+		 
 		);
         }
 
@@ -79,7 +82,8 @@ BEGIN {
         my @dl_resolve_using = &DynaLoader::dl_findfile(@L_libs_dir, @$t_libs);
 
 	#PTZ191126 for PerlQt5  libsmokeperl.so installed in /usr/local/lib
-        push(@dl_resolve_using, &DynaLoader::dl_findfile(qw(-L/usr/local/lib -lsmokeperl)));
+        #push(@dl_resolve_using, &DynaLoader::dl_findfile(qw(-L/usr/local/lib -lsmokeperl)));
+	
 
         print STDERR "tests::DynaLoader::dl_findfile=", Dumper(@dl_resolve_using);
 
@@ -87,8 +91,8 @@ BEGIN {
         #CPM140526 RTLD_LAZY || RTLD_NOW don't be lazy
         my $_dl_load_flag = 0x01;
         #CPM140526 does nothing?
-        push(@DynaLoader::dl_require_symbols, qw(luaopen_base genhash_str_copy_func));
-        push(@DynaLoader::dl_require_symbols, qw(servers_scan_begin announce));
+        #push(@DynaLoader::dl_require_symbols, qw(luaopen_base genhash_str_copy_func));
+        #push(@DynaLoader::dl_require_symbols, qw(servers_scan_begin announce));
 
         #load those libs
         foreach my $_lib  (@dl_resolve_using) {
@@ -107,7 +111,7 @@ BEGIN {
             }
         }
         return \@dl_resolve_using;
-   }
+    }
     
  
 
@@ -141,14 +145,17 @@ BEGIN {
     }
 
     $ENV{PERL_DL_DEBUG} = 1;
-    $ENV{abs_builddir} =  File::Spec->catdir($ENV{HOME}, "prj/qt/perlqt.git/bld") unless(defined($ENV{abs_builddir}));
-    my @blddir = (File::Spec->catdir($ENV{abs_builddir}, 'perl')
-                  , File::Spec->rel2abs('.')
-                  , File::Spec->rel2abs('..')
+    $ENV{abs_builddir} = File::Spec->catdir($ENV{HOME}, "prj/qt/perlqt.git/bld")
+	unless(defined($ENV{abs_builddir}));
+    my @blddir = (
+	File::Spec->catdir($ENV{abs_builddir})
+	, File::Spec->catdir($ENV{abs_builddir}, 'perl')
+	, File::Spec->rel2abs('.')
+	, File::Spec->rel2abs('..')
         );
 #CPM140525 order matters
-    my $tlib = [ qw(modshogun lua5.1 lua5.1-c++ )];
-    $tlib = [ qw()];
+    #my $tlib = [ qw(modshogun lua5.1 lua5.1-c++ )];
+    my $tlib = [ qw()];
     &update_test_libs($tlib, \@blddir);
     
     #&test_harness(0, 'blib/lib', 'blib/arch');  
