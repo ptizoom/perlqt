@@ -5,6 +5,8 @@
 
 namespace SmokePerl {
 
+  typedef Marshall::TypeHandler TypeHandler;
+  
 void marshall_basetype(Marshall* m);
 void marshall_unknown(Marshall* m);
 void marshall_void(Marshall* m);

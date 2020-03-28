@@ -40,6 +40,8 @@
 
 #include <listclass_macros.h>
 
+#include "qtcore_handlers.h"
+
 extern Q_DECL_IMPORT QList<Smoke*> smokeList;
 extern SV* sv_this;
 
@@ -59,7 +61,7 @@ resolve_classname_qtgui(smokeperl_object * o)
   //return perlqt_modules[o->smoke()].binding->className(o->classId.index);
 }
 
-extern TypeHandler QtGui_handlers[];
+extern TypeHandler QtGui_handlers;
 
 static PerlQt5::Binding bindingqtgui;
 
@@ -112,13 +114,13 @@ MODULE = QtGui            PACKAGE = QtGui
 PROTOTYPES: ENABLE
 
 BOOT:
-    init_qtgui_Smoke();
-    smokeList << qtgui_Smoke;
+      //boot_PerlQt5__QtGui(cv); //PTZ200310  need to boot this too?
 
-    bindingqtgui = PerlQt5::Binding(qtgui_Smoke);
-
-    PerlQtModule module = { "PerlQtGui", resolve_classname_qtgui, 0, &bindingqtgui  };
-    perlqt_modules[qtgui_Smoke] = module;
+    /* init_qtgui_Smoke(); */
+    /* smokeList << qtgui_Smoke; */
+    /* bindingqtgui = PerlQt5::Binding(qtgui_Smoke); */
+    /* PerlQtModule module = { "PerlQtGui", resolve_classname_qtgui, 0, &bindingqtgui  }; */
+    /* perlqt_modules[qtgui_Smoke] = module; */
 
     install_handlers(QtGui_handlers);
 

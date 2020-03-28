@@ -1,6 +1,10 @@
 
 #include <QXmlStreamAttributes>
 
+
+#include <qtcore_smoke.h>
+#include "qtcore_handlers.h"
+
 //util.h brings in all the required Qt4 headers.  This has to happen before the
 //perl stuff below
 #include "perlqtcore_util.h"
@@ -466,20 +470,22 @@ BOOT:
     PL_use_safe_putenv = 1;
 #endif
 
-    init_qtcore_Smoke();
-    smokeList << qtcore_Smoke;
-
-    binding = PerlQt5::Binding(qtcore_Smoke);
-    PerlQtModule module = { "PerlQtCore", resolve_classname_qt, 0, &binding };
-    perlqt_modules[qtcore_Smoke] = module;
-
-    install_handlers(Qt_handlers);
-
-    pointer_map = get_hv( "Qt::_internal::pointer_map", FALSE );
-
-    newXS("Qt::qVariantFromValue", XS_qvariant_from_value, __FILE__);
-    newXS("Qt::qVariantValue", XS_qvariant_value, __FILE__);
-    newXS(" Qt::Object::findChildren", XS_find_qobject_children, __FILE__);
+#//init_qtcore_Smoke();
+#//SmokePerl::SmokeManager::instance().addSmokeModule(qtcore_Smoke, "QtCore");
+        //PTZ200327 to replace Qt::_internal::init() and init_class()
+	SmokePerl::SmokeManager::instance().addSmokeModule(qtcore_Smoke, "Qt");
+#/* #ifdef PTZ200213_make_it_a_PerlQt5_QtCore */
+#/* //SmokePerl::SmokeManager::instance().addSmokeModule(qtcore_Smoke, "PerlQtCore"); */
+#/* //SmokePerl::Marshall::installHandlers(qtcore_typeHandlers); */
+#/*     /\* smokeList << qtcore_Smoke; *\/ */
+#/*     /\* binding = PerlQt5::Binding(qtcore_Smoke); *\/ */
+#/*     /\* PerlQtModule module = { "PerlQtCore", resolve_classname_qt, 0, &binding }; *\/ */
+#/*     /\* perlqt_modules[qtcore_Smoke] = module; *\/ */
+	install_handlers(Qt_handlers);
+#/*     /\* pointer_map = get_hv( "Qt::_internal::pointer_map", FALSE ); *\/ */
+#/*     newXS("Qt::qVariantFromValue", XS_qvariant_from_value, __FILE__); */
+#/*     newXS("Qt::qVariantValue", XS_qvariant_value, __FILE__); */
+#//    newXS(" Qt::Object::findChildren", XS_find_qobject_children, __FILE__);
     newXS("Qt::Object::findChildren", XS_find_qobject_children, __FILE__);
     newXS("Qt::Object::qobject_cast", XS_qobject_qt_metacast, __FILE__);
     newXS("Qt::qRegisterResourceData", XS_q_register_resource_data, __FILE__);

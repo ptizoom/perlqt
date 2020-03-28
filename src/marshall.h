@@ -108,6 +108,8 @@ public:
 class SMOKEPERL_EXPORT Marshall {
 public:
     typedef void (*HandlerFn)(Marshall *);
+    typedef std::unordered_map<std::string, HandlerFn> TypeHandler;
+
     enum Action {
         FromSV,
         ToSV
@@ -122,7 +124,7 @@ public:
     virtual bool cleanup() const = 0;
     virtual ~Marshall() {}
 
-    static void installHandlers(const std::unordered_map<std::string, HandlerFn>& handlers);
+    static void installHandlers(const TypeHandler& handlers);
     static Marshall::HandlerFn getMarshallFn(const SmokeType& type);
 
     typedef SV* (*MarshallFunction)(const void*);

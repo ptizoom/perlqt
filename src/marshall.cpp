@@ -1,9 +1,10 @@
-#include "marshall.h"
+
 #include "handlers.h"
+#include "marshall.h"
 
 namespace SmokePerl {
 
-static std::unordered_map<std::string, Marshall::HandlerFn> TypeHandlers {
+static TypeHandler TypeHandlers {
     {"char*", marshall_PrimitiveRef<char*>},
     {"char**", marshall_CharPArray},
     {"int&", marshall_PrimitiveRef<int*>},
@@ -12,7 +13,7 @@ static std::unordered_map<std::string, Marshall::HandlerFn> TypeHandlers {
     {"void**", marshall_VoidPArray},
 };
 
-void Marshall::installHandlers(const std::unordered_map<std::string, HandlerFn>& handlers) {
+void Marshall::installHandlers(const TypeHandler& handlers) {
     for (const auto& handler : handlers) {
         TypeHandlers[handler.first] = handler.second;
     }

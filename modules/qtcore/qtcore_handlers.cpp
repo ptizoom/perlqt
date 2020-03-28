@@ -101,7 +101,7 @@ void marshall_QString(SmokePerl::Marshall* m) {
     }
 }
 
-std::unordered_map<std::string, SmokePerl::Marshall::HandlerFn> qtcore_typeHandlers {
+TypeHandler qtcore_typeHandlers {
     {"QString", marshall_QString},
     {"QString*", marshall_QString},
     {"QString&", marshall_QString},

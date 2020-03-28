@@ -1,12 +1,11 @@
 #ifndef SMOKEPERL_QTCORE_HANDLERS
 #define SMOKEPERL_QTCORE_HANDLERS
 
-#include <string>
-#include <unordered_map>
+#include "handlers.h"
 
-#include "marshall.h"
+using  TypeHandler = SmokePerl::TypeHandler;
 
-extern std::unordered_map<std::string, SmokePerl::Marshall::HandlerFn> qtcore_typeHandlers;
+extern TypeHandler qtcore_typeHandlers;
 
 void marshall_QString(SmokePerl::Marshall* m);
 

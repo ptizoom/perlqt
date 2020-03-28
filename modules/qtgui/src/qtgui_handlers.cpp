@@ -33,11 +33,17 @@ extern "C" {
 
 #include <smokeperl.h>
 #include <marshall_macros.h>
-
+#include "handlers_qt4.h"
 //DEF_VALUELIST_MARSHALLER( QTestAccessibilityEventList, QList<QTestAccessibilityEvent>, QTestAccessibilityEvent )
+//PTZ200317 static Smoke::Type types[] =  in smokedata.cpp
+//... { "QFlags<QPaintEngine::DirtyFlag>", 0, Smoke::t_uint|Smoke::tf_stack },	//101
+//    { "QFlags<QPaintEngine::PaintEngineFeature>", 0, Smoke::t_uint|Smoke::tf_stack },	//102
+//this handler is not really consistent?... a reference ...& should always map to ...< void*>... !?
 
-TypeHandler QtGui_handlers[] = {
+TypeHandler QtGui_handlers {
     //{ "QList<QTestAccessibilityEvent>", marshall_QTestAccessibilityEventList },
+
+#if PTZ200317_probs_with_symbol_Z11marshall_itIPjEvPN9SmokePerl8MarshallE
     { "QFlags<QAbstractSpinBox::StepEnabledFlag>&", marshall_it< unsigned int *> },
     { "QFlags<QPaintEngine::DirtyFlag>&", marshall_it< unsigned int *> },
     { "QFlags<QPaintEngine::PaintEngineFeature>&", marshall_it< unsigned int *> },
@@ -55,5 +61,6 @@ TypeHandler QtGui_handlers[] = {
     { "QFlags<Qt::MouseButton>&", marshall_it< unsigned int *> },
     { "QFlags<Qt::TouchPointState>&", marshall_it< unsigned int *> },
     { "QFlags<Qt::WindowType>&", marshall_it< unsigned int *> },
-    { 0, 0 }
+#endif
+    { "", nullptr }
 };

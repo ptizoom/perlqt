@@ -406,9 +406,17 @@ void marshall_PrimitiveRef(Marshall* m) {
             break;
     }
 }
-
 template void marshall_PrimitiveRef<char*>(Marshall* m);
 template void marshall_PrimitiveRef<int*>(Marshall* m);
+  //PTZ200318 needed to instanciate 
+template void marshall_PrimitiveRef<bool*>(Marshall* m);  
+  //template void marshall_PrimitiveRef<char*&>(Marshall* m);
+template void marshall_PrimitiveRef<long long>(Marshall* m);
+template void marshall_PrimitiveRef<unsigned int*>(Marshall* m);
+template void marshall_PrimitiveRef<short*>(Marshall* m);
+template void marshall_PrimitiveRef<unsigned short*>(Marshall* m);
+template void marshall_PrimitiveRef<unsigned long long>(Marshall* m);
+template void marshall_PrimitiveRef<unsigned char*>(Marshall* m);
 
 void marshall_CharPArray(Marshall* m) {
     switch( m->action() ) {
