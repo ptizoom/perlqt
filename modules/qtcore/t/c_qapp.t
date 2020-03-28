@@ -1,18 +1,19 @@
-use Test::More tests => 3;
+use Test::More tests => 4-1;
 
-use QtCore;
+use QtCore qw(SLOT);
 use QtCore::debug qw(ambiguous); #PTZ200120
+
 use QtGui;
-#use Qt;	
-#use Qt::GlobalSpace;
+
+#use_ok(Qt);	
+use Qt::GlobalSpace;
 
 $classes =  Qt::_internal::getClassList();
 diag( @$classes);
 
 $a=0;
 
-$a = Qt::CoreApplication( \@ARGV );
-
+$a = Qt::QCoreApplication( \@ARGV );
 
 # Test if the Qt::Application ctor works
 
