@@ -69,7 +69,7 @@ using SmokeType = SmokePerl::SmokeType;
 #endif
 
 
-
+//PTZ200211 is it nescessary and usefull ?
 class SmokeClass {
     Smoke::Class *_c;
     Smoke *_smoke;
