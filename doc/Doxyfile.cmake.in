@@ -28,10 +28,10 @@ RECURSIVE              = YES
 CREATE_SUBDIRS         = YES
 EXCLUDE_SYMLINKS       = YES
 
-#EXCLUDE                = */PHY/TOOLS/alaw_lut.h
+#EXCLUDE                = */
 #input buffer overflow, can't enlarge buffer because scanner uses REJECT
 EXCLUDE_PATTERNS       = *.d \
-  */PHY/TOOLS/alaw_lut.h \
+
 
 
 
@@ -41,8 +41,7 @@ EXCLUDE_PATTERNS       = *.d \
 GENERATE_HTML          = YES
 #HTML_HEADER            = "@APIDOC_DIR@/html/header.html"
 #HTML_FOOTER            = "@APIDOC_DIR@/html/footer.html"
-#CHM_FILE               = "oai.chm"
-#HHC_LOCATION           = "@HHC_PROGRAM@"
+
 USE_MDFILE_AS_MAINPAGE = @doxy_main_page@
 
 
@@ -50,20 +49,23 @@ GENERATE_LATEX         = @DOXYGEN_GENERATE_LATEX@
 GENERATE_XML           = @DOXYGEN_GENERATE_XML@
 GENERATE_MAN           = @DOXYGEN_GENERATE_MAN@
 GENERATE_ECLIPSEHELP   = NO
+GENERATE_LATEX         = NO
 
 SEARCHENGINE           = YES
 
 INCLUDE_PATH           = \
         /usr/include /usr/local/include \
 	@SMOKE_QTGUI_INCLUDE_DIR@ \
-/usr/lib/x86_64-linux-gnu/perl/5.30/CORE /usr/include/x86_64-linux-gnu/qt5/QtCore/5.12.5 /usr/include/x86_64-linux-gnu/qt5/QtCore/5.12.5/QtCore \
-
+/usr/lib/x86_64-linux-gnu/perl/5.30/CORE \
+/usr/include/x86_64-linux-gnu/qt5/QtCore/5.12.5 \
+/usr/include/x86_64-linux-gnu/qt5/QtCore/5.12.5/QtCore \
+ @QT_INCLUDES@
 
 # name=definition (no spaces). If the definition and the "=" are omitted, "=1"
 # is assumed. To prevent a macro definition from being undefined via #undef or recursively expanded use the :=
 #PREDEFINED             =
 
-#CQI_ReportPeriodic
+
 
 SOURCE_BROWSER         = YES
 INLINE_SOURCES         = YES
@@ -85,9 +87,6 @@ CALLER_GRAPH           = YES
 MAX_DOT_GRAPH_DEPTH    = 4
 DOT_FONTSIZE           = 6
 UML_LOOK               = YES
-
-
 INTERACTIVE_SVG        = NO
 
-#lots of errors... $N_\text{ANRep}$ etc...
-GENERATE_LATEX=NO
+

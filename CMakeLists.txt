@@ -189,3 +189,6 @@ find_program(ETAGS_PATH etags)
 if(ETAGS_PATH)
     message(STATUS "Found etags: ${ETAGS_PATH}")
 endif(ETAGS_PATH)
+
+add_subdirectory(doc)
+
