@@ -17,23 +17,25 @@ END {
 }
 
 #use Test::More tests => 3;
-
-use QtCore;
+#use PerlQt5::QtCore;
+use QtCore qw(SLOT);
 use QtCore::debug qw(ambiguous); #PTZ200120
+
 use QtGui;
 
 $classes =  Qt::_internal::getClassList();
 diag( @$classes);
 
+
 $a=0;
 
-$a = Qt::Application( \@ARGV );
-$a = Qt::CoreApplication( \@ARGV );
+$a = Qt::QCoreApplication->new( \@ARGV );
 
+$a = Qt::QApplication->new( \@ARGV );
 
 # Test if the Qt::Application ctor works
 
-eval { $a = Qt::Application( \@ARGV ) };
+#eval { $a = Qt::Application( \@ARGV ) };
 
 ok( !+$@, 'Qt::Application ctor' ) or diag( $@ );
 
