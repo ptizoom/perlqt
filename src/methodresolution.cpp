@@ -1,9 +1,11 @@
+#include <algorithm>
 #include "methodresolution.h"
 #include "smokeobject.h"
+#include "smokemanager.h"
 
 namespace SmokePerl {
 
-static std::string typeName(const Smoke::Type& typeRef) {
+static const std::string typeName(const Smoke::Type& typeRef) {
     std::string name(typeRef.name);
     if (name.find("const ") != std::string::npos) {
         name.replace(0, 5, "");
@@ -17,50 +19,74 @@ static std::string typeName(const Smoke::Type& typeRef) {
     return name;
 }
 
-static int matchArgument(SV* actual, const Smoke::Type& typeRef) {
-    std::string fullArgType(typeRef.name);
-    if (fullArgType.find("const ") != std::string::npos) {
-        fullArgType.replace(0, 5, "");
-    }
-    std::string argType = typeName(typeRef);
+static int matchArgument(SV* actual, const Smoke::ModuleIndex& baseClassId, const Smoke::Type& typeRef) {
+    const std::string argType = typeName(typeRef);
     int matchDistance = 0;
 
+    Object* object = Object::fromSV(actual);
+
+    const char* package = nullptr;
+    if (sv_isobject(actual)) {
+        package = HvNAME(SvSTASH(SvRV(actual)));
+    }
     if (SvROK(actual)) {
         actual = SvRV(actual);
     }
-    if (SvTYPE(actual) == SVt_IV) {
+    switch (SvTYPE(actual)) {
+    case SVt_IV:
+    case SVt_PVMG: // Most scalars will be a PVMG, see svtype in perlapi
         switch (typeRef.flags & Smoke::tf_elem) {
             case Smoke::t_int:
-                break;
-            case Smoke::t_long:
                 matchDistance += 1;
                 break;
-            case Smoke::t_short:
+            case Smoke::t_long:
                 matchDistance += 2;
                 break;
-            case Smoke::t_enum:
+            case Smoke::t_short:
                 matchDistance += 3;
                 break;
-            case Smoke::t_ulong:
+            case Smoke::t_enum:
+                if (package) {
+                    // Match a blessed scalar with the c++ class name
+                    if (SmokePerl::SmokeManager::instance().getClassForPackage(package) == argType) {
+                        break;
+                    }
+                }
                 matchDistance += 4;
                 break;
-            case Smoke::t_uint:
+            case Smoke::t_ulong:
                 matchDistance += 5;
                 break;
-            case Smoke::t_ushort:
+            case Smoke::t_uint:
+                if (package) {
+                    // QFlags maps to t_uint, check for a QFlags<FlagName>
+                    // match
+                    const std::string cname = SmokePerl::SmokeManager::instance().getClassForPackage(package);
+                    if (
+                        argType.compare(0, 7, "QFlags<") == 0 &&
+                        argType.compare(7, cname.size(), cname) == 0 &&
+                        argType[argType.size()-1] == '>'
+                    )
+                    {
+                        break;
+                    }
+                }
                 matchDistance += 6;
                 break;
-            case Smoke::t_char:
+            case Smoke::t_ushort:
                 matchDistance += 7;
                 break;
-            case Smoke::t_uchar:
+            case Smoke::t_char:
                 matchDistance += 8;
+                break;
+            case Smoke::t_uchar:
+                matchDistance += 9;
                 break;
             default:
                 matchDistance += 100;
         }
-    }
-    else if (SvTYPE(actual) == SVt_NV) {
+        break;
+    case SVt_NV:
         switch (typeRef.flags & Smoke::tf_elem) {
             case Smoke::t_double:
                 break;
@@ -70,11 +96,31 @@ static int matchArgument(SV* actual, const Smoke::Type& typeRef) {
             default:
                 matchDistance += 100;
         }
-    }
-    else if (actual == &PL_sv_yes || actual == &PL_sv_no) {
-        if ((typeRef.flags & Smoke::tf_elem) == Smoke::t_bool) {
+        break;
+    case SVt_PVHV:
+    case SVt_PVAV:
+        if ((typeRef.flags & Smoke::tf_elem) == Smoke::t_class) {
+            if (object && object->isValid()) {
+                matchDistance += object->inheritanceDistance(baseClassId);
+            }
+            else {
+                matchDistance = -1;
+            }
+        }
+        else if ((typeRef.flags & Smoke::tf_elem) == Smoke::t_voidp && object && object->isValid() && object->classId == Smoke::NullModuleIndex) {
+            // This is the case when the arg is a void**, as used by methods
+            // like qt_metacall
         }
         else {
+            matchDistance += 100;
+        }
+        break;
+    default:
+        matchDistance += 100;
+    }
+
+    if (actual == &PL_sv_yes || actual == &PL_sv_no) {
+        if ((typeRef.flags & Smoke::tf_elem) != Smoke::t_bool) {
             matchDistance += 100;
         }
     }
@@ -176,22 +222,38 @@ MethodMatches resolveMethod(Smoke::ModuleIndex classId, const std::string& metho
                 matchDistance += 1;
             }
 
+            bool allArgTypesCompatible = true;
             for (int i = 0; i < methodRef.numArgs; ++i) {
                 SV* actual = args[i];
-                unsigned short argFlags = method.smoke->types[method.smoke->argumentList[methodRef.args+i]].flags;
-                int distance = matchArgument(actual, method.smoke->types[method.smoke->argumentList[methodRef.args+i]]);
+                const Smoke::Type& type = method.smoke->types[method.smoke->argumentList[methodRef.args+i]];
+                const int distance = matchArgument(
+                    actual,
+                    {method.smoke, type.classId},
+                    type
+                );
+
+                if (distance == -1) {
+                    allArgTypesCompatible = false;
+                    break;
+                }
 
                 matchDistance += distance;
             }
 
-            auto insertPos = matches.end();
-            if (matches.size() > 0 && matchDistance <= matches[0].second) {
-                insertPos = matches.begin();
-            }
-            matches.insert(insertPos, MethodMatch(methods, matchDistance));
+            if (!allArgTypesCompatible)
+                continue;
+
+            matches.push_back(MethodMatch(methods, matchDistance));
         }
     }
 
+    // Sort the array of matches based on their score.  Use a stable sort so
+    // that order is preserved.  The order that is defined in the smoke object
+    // should be the order in which the methods were declaraed in the source
+    // header.
+    std::stable_sort(matches.begin(), matches.end(), [](const MethodMatch& lhs, const MethodMatch& rhs) {
+        return lhs.second < rhs.second;
+    });
     return matches;
 }
 

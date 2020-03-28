@@ -55,6 +55,9 @@ public:
         return classId.smoke->cast(value, classId, targetId);
     }
 
+    int inheritanceDistance(const Smoke::ModuleIndex& baseId);
+    static int inheritanceDistance(const Smoke::ModuleIndex& classId, const Smoke::ModuleIndex& baseId, int count=0);
+
     bool isValid() {
         return validCppObject;
     }
@@ -65,7 +68,7 @@ public:
 
     void* value;
     SV* sv;
-    Smoke::ModuleIndex classId;
+    const Smoke::ModuleIndex classId;
     ValueOwnership ownership;
     static constexpr MGVTBL vtbl_smoke { 0, 0, 0, 0, free };
 
