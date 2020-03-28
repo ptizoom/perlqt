@@ -70,7 +70,8 @@ endif (0)
 
 
 
-
+#PTZ200222 for documentations setup
+set(QT_INCLUDES ${QT_INCLUDES} PARENT_SCOPE)
 
 
 macro_display_bindings_log()
