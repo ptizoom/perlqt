@@ -134,7 +134,9 @@ char* Binding::className(Smoke::Index classId) {
     HV* classId2package = get_hv( "Qt::_internal::classId2package", FALSE );
     if( !classId2package ) croak( "Internal error: Unable to find classId2package hash" );
 
-    int smokeId = smokeList.indexOf(smoke);
+    //TODO::PTZ200310 higly inneficient
+    QVector< Smoke*> smokeList = QVector< Smoke*>::fromStdVector(SmokePerl::SmokeManager::instance().getSmokes());
+    QVector< Smoke*>::Size_type smokeId = smokeList.indexOf(smoke);
     // Look up the package's name in the hash
     char* key = new char[7];
     int klen = sprintf( key, "%d", (classId<<8) + smokeId );

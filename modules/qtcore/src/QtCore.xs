@@ -27,13 +27,18 @@
 //#include "marshall_types.h" // Method call classes
 //#include "handlers.h" // for install_handlers function
 #include "listclass_macros.h"
+#include "xsfunctions.h"
+#include "perlqtmetaobject.h"
 
-extern PerlQt5::Binding binding;
 extern Q_DECL_EXPORT Smoke* qtcore_Smoke;
-extern "C" void init_qtcore_Smoke();
-extern Q_DECL_EXPORT QHash<Smoke*, PerlQtModule> perlqt_modules;
-extern SV* sv_qapp;
-Q_DECL_EXPORT QList<Smoke*> smokeList;
+//extern "C" void init_qtcore_Smoke();
+extern SV* sv_qapp; // PTZ200322 could be mapped to 
+
+//extern PerlQt5::Binding binding;
+//extern Q_DECL_EXPORT QHash<Smoke*, PerlQtModule> perlqt_modules;
+//TODO::PTRZ200212 use SmokePerl::SmokeManager::instance() instead !!
+//Q_DECL_EXPORT QList<Smoke*> smokeList; is  std::vector<Smoke*> SmokePerl::SmokeManager::instance().getSmokes()
+//PTZ200207 should not use.. in qt5 , it is all HV .. no AV settings!
 QList<QString> arrayTypes;
 
 DEF_VECTORCLASS_FUNCTIONS(QXmlStreamAttributes, QXmlStreamAttribute, Qt::XmlStreamAttributes);

@@ -9,20 +9,21 @@
 
 namespace PerlQt5 {
 
-  //TODO:PTZ200104 using Binding = SmokePerl::SmokePerlBinding;
+  //TODO:PTZ200104
+  using Binding = SmokePerl::SmokePerlBinding;
   
-  class Q_DECL_EXPORT Binding : public SmokePerl::SmokePerlBinding {
-  public:
-    Binding(): SmokePerl::SmokePerlBinding() {}
-    Binding(Smoke* s): SmokePerl::SmokePerlBinding(s) {}
+  // class Q_DECL_EXPORT Binding : public SmokePerl::SmokePerlBinding {
+  // public:
+  //   Binding(): SmokePerl::SmokePerlBinding() {}
+  //   Binding(Smoke* s): SmokePerl::SmokePerlBinding(s) {}
     
-    virtual void deleted(Smoke::Index /*classId*/, void* cxxptr);
-    virtual bool callMethod(Smoke::Index method, void* ptr, Smoke::Stack args, bool isAbstract);
-    virtual char* className(Smoke::Index classId);
-  };
+  //   virtual void deleted(Smoke::Index /*classId*/, void* cxxptr);
+  //   virtual bool callMethod(Smoke::Index method, void* ptr, Smoke::Stack args, bool isAbstract);
+  //   virtual char* className(Smoke::Index classId);
+  // };
 
 }
 
-extern PerlQt5::Binding binding;
+//extern PerlQt5::Binding binding;
 
 
