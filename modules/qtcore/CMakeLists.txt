@@ -53,6 +53,7 @@ add_custom_target(
     perlqt5corepm ALL
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/QtCore.pm ${CMAKE_BINARY_DIR}/blib/lib/PerlQt5/QtCore.pm
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/qtcore.bs ${LIBRARY_OUTPUT_PATH}/${libraryName}.bs
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/qtcore.bs
 )
 
 perl_extutils_mkbootstrap(qtcore perlqt5core)
