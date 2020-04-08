@@ -12,6 +12,8 @@ XS(XS_AUTOLOAD) {
     dXCPT;
     HV* stash = CvSTASH(cv);
     if (!stash) { //PTZ200120 only during dev things can go pearshape.
+      //https://perldoc.perl.org/perlguts.html#Autoloading-with-XSUBs 
+      // "...CvSTASH(cv) returns NULL during a method call on a nonexistent package...."
       croak("Internal error: Unable to resolve XS_AUTOLOAD with an empty CV stash");
     }
     const char* package = HvNAME(stash);

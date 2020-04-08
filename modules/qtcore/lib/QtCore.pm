@@ -1277,9 +1277,8 @@ sub findAnyPossibleMethod {
 
 
 #PTZ200327 defined in QtCore::BOOT by ...SmokePerl::SmokeManager::instance().addSmokeModule(qtcore_Smoke, "Qt");
-sub init_class_ {
-    my ($class, $cxxClassName) = @_;
-
+sub init_class {
+    my ($class, $cxxClassName) = @_;    
     my $perlClassName = $class->normalize_classname($cxxClassName);
     my ($classId, $smokeId) = findClass($cxxClassName);
     my $moduleId = [$smokeId, $classId];
@@ -1292,33 +1291,39 @@ sub init_class_ {
         #$classId2package{$moduleIdBitwise} = $perlClassName;
 
         # Define the inheritance array for this class.
-        @isa = getIsa($moduleId);
+        #@isa = getIsa($moduleId);
+	@isa = map { if (!/\:\:/) { 'Qt::' . $_ } } &getIsa($moduleId);
+	#@isa = ( 'PerlQt5::QtCore::' . $cxxClassName );
     }
-
-    @isa = $customClasses{$perlClassName}
-        if defined $customClasses{$perlClassName};
+    #
+    #    @isa = $customClasses{$perlClassName}
+    #        if defined $customClasses{$perlClassName};
 
     # We want the isa array to be the names of perl packages, not c++ class
     # names
-    foreach my $super ( @isa ) {
-        $super = $class->normalize_classname($super);
-    }
+    #    foreach my $super ( @isa ) {
+    #        $super = $class->normalize_classname($super);
+    #    }
 
     # The root of the tree will be Qt::base, so a call to
     # $className::new() redirects there.
     @isa = ('Qt::base') unless @isa;
-    @{arrayByName($perlClassName.'::ISA')} = @isa;
+    
+    unshift(@isa, 'PerlQt5::QtCore::' . $cxxClassName);
+
+    @{&arrayByName($perlClassName . '::ISA')} = @isa;
 
     # Define overloaded operators
-    if ( exists $vectorTypes{$perlClassName} ) {
-        push @{arrayByName(" $perlClassName\::ISA")}, "$perlClassName\::_overload";
-        setIsArrayType( " $perlClassName" );
-    }
-    push @{arrayByName(" $perlClassName\::ISA")}, 'Qt::base::_overload';
-
+    #if ( exists $vectorTypes{$perlClassName} ) {
+    #    push @{arrayByName(" $perlClassName\::ISA")}, "$perlClassName\::_overload";
+    #    setIsArrayType( " $perlClassName" );
+    #}
+    #push @{arrayByName(" $perlClassName\::ISA")}, 'Qt::base::_overload';
 
 #TODOPTZ200119
-#Subroutine Qt::GlobalSpace::_UTOLOAD redefined at /usr/src/perlqt5/bld/blib/lib/QtCore.pm line 1304.
+    #Subroutine Qt::GlobalSpace::_UTOLOAD redefined at /usr/src/perlqt5/bld/blib/lib/QtCore.pm line 1304.
+    #PTZ200331 stopped...
+    if (0) {
     foreach my $sp ('', ' ') {
         my $where = $sp . $perlClassName;
 	#instanciate $perlClassName::_UTOLOAD ~  XS_AUTOLOAD
@@ -1329,13 +1334,18 @@ sub init_class_ {
         # Putting this in one package gives XS_AUTOLOAD one spot to look for
         # the autoload variable
         package Qt::AutoLoad;
-	# XS_AUTOLOAD with an empty CV
+	# XS_AUTOLOAD with an empty CV ? #PTZ200331 stopped...
         my $autosub = \&{$where . '::_UTOLOAD'};
-        Qt::_internal::installSub( $where.'::AUTOLOAD', sub{&$autosub} );
-    }
 
-    #PTZ200326 do not want that!
-    installSub("$perlClassName\::NEW_", sub {
+	#PTZ200331 stopped...
+        Qt::_internal::installSub($where . '::AUTOLOAD'
+				   , sub {
+				       &$autosub
+				   });
+    }
+    }
+    #PTZ200326 do not want that!?
+    installSub("$perlClassName\::NEW", sub {
         # Removes $perlClassName from the front of @_
         my $perlClassName = shift;
 	#
@@ -1345,7 +1355,7 @@ sub init_class_ {
         $Qt::AutoLoad::AUTOLOAD = "$perlClassName\::$cxxClassName";
         my $_utoload = \&{"$perlClassName\::_UTOLOAD"};
         setThis( bless &$_utoload, " $perlClassName" );
-    }) unless(defined &{"$perlClassName\::NEW_"});
+    }) unless(defined (&{"$perlClassName\::NEW"}) || 1); #PTZ200331 stopped...
 
     # Make the constructor subroutine
     installSub($perlClassName, sub {
@@ -1441,11 +1451,12 @@ sub init {
     #done in  QtCore.xs::BOOT ..
     #    SmokePerl::SmokeManager::instance().addSmokeModule(_Smoke, "Qt");
     
-    #my $classes = getClassList();    
-    #Qt::_internal->init_class($_) for(@$classes);
+    my $classes = getClassList();    
+    Qt::_internal->init_class($_) for(@$classes);
 
-    #my $enums = getEnumList();
-    #Qt::_internal->init_enum($_) for(@$enums);
+    #
+    my $enums = getEnumList();
+    Qt::_internal->init_enum($_) for(@$enums);
 }
 
 sub makeMetaData {
@@ -1663,7 +1674,8 @@ our @EXPORT = qw( SIGNAL SLOT emit CAST qApp );
 QtCore::loadModule(__PACKAGE__, $VERSION);
 
 #PTZ200213
-#PTZ200323 Qt::_internal::init();
+#PTZ200323
+Qt::_internal::init();
 
 
 #PTZ2002131 
