@@ -458,8 +458,8 @@ int isDerivedFrom(Smoke *smoke, const char *className, const char *baseClassName
 }
 
 Q_DECL_EXPORT int isDerivedFrom( smokeperl_object *o, const char *baseClassName ) {
-    Smoke::ModuleIndex classId(o->smoke, o->classId);
-    Smoke::ModuleIndex baseId = o->smoke->findClass(baseClassName);
+  Smoke::ModuleIndex classId(o->smoke(), o->classId.index);
+  Smoke::ModuleIndex baseId = o->smoke()->findClass(baseClassName);
     return isDerivedFrom(classId.smoke, classId.index, baseId.smoke, baseId.index);
 }
 
