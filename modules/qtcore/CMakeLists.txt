@@ -57,9 +57,9 @@ add_custom_target(
 )
 
 perl_extutils_mkbootstrap(qtcore perlqt5core)
-install(FILES qtcore.bs
-  OUTPUT_NAME ${libraryName}.bs
-  EXPORT PerlQtExport
+install(FILES ${LIBRARY_OUTPUT_PATH}/${libraryName}.bs
+  #OUTPUT_NAME ${libraryName}.bs
+  #EXPORT PerlQtExport
   DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/PerlQt5/${libraryName}/
   )
 

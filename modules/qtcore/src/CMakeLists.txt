@@ -58,8 +58,8 @@ set_target_properties(qtcore PROPERTIES
 )
 
 perl_extutils_mkbootstrap(QtCore qtcore)
-install(FILES QtCore.bs
-  EXPORT PerlQtExport
+install(FILES ${LIBRARY_OUTPUT_PATH}/${libraryName}.bs
+  #EXPORT PerlQtExport
   DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/${libraryName}/
   )
 add_custom_target(

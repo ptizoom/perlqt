@@ -18,7 +18,8 @@ endif(WIN32)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/blib/arch/auto/PerlQt5/${libraryName})
 
 add_library(perlqtgui5 SHARED
-    ${CMAKE_CURRENT_BINARY_DIR}/qtgui.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/qtgui.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/qtgui.bs
 )
 
 target_link_libraries(perlqtgui5
@@ -45,9 +46,15 @@ install(
 
 add_custom_target(
     perlqt5guipm ALL
-    ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/QtGui.pm
-    ${CMAKE_BINARY_DIR}/blib/lib/PerlQt5/QtGui.pm
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/QtGui.pm ${CMAKE_BINARY_DIR}/blib/lib/PerlQt5/QtGui.pm
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/qtgui.bs ${LIBRARY_OUTPUT_PATH}/${libraryName}.bs
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/qtgui.bs
 )
+perl_extutils_mkbootstrap(qtgui perlqtgui5)
+
+install(FILES ${LIBRARY_OUTPUT_PATH}/${libraryName}.bs
+  DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/PerlQt5/${libraryName}/
+  )
 
 install(FILES QtGui.pm DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/PerlQt5)
 

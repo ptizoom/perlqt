@@ -39,7 +39,7 @@ install(
 install(FILES
   smokebinding.h smokemanager.h
   smokeperl_export.h
-  smokehelp.h smokeperl.h
+  #smokehelp.h smokeperl.h
   smokeobject.h
   handlers.h
   #listclass_macros.h
@@ -48,8 +48,12 @@ install(FILES
   methodcall.h virtualmethodcall.h
   #marshall_macros.h marshall_primitives.h marshall_types.h
   #perlqt.h ppport.h QtCore.h perlqtcore_util.h
-
-  EXPORT PerlQtExport
+  binding_qt4.h  handlers_qt4.h  smoke_types_qt4.h
+  marshall_qt4.h
+  xsfunctions.h
+  methodresolution.h
+  
+  #EXPORT PerlQtExport
   DESTINATION include/smokeperlqt5
   )
 

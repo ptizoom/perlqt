@@ -41,12 +41,12 @@ install(TARGETS perl_qtgui
   DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/${libraryName}/
   )
 
-
 perl_extutils_mkbootstrap(QtGui perl_qtgui)
-install(FILES QtGui.bs
-  EXPORT PerlQtExport
+
+install(FILES ${LIBRARY_OUTPUT_PATH}/${libraryName}.bs
   DESTINATION ${CUSTOM_PERL_SITE_ARCH_DIR}/auto/${libraryName}/
   )
+
 add_custom_target(qtguibs ALL
   COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_CURRENT_BINARY_DIR}/QtGui.bs
